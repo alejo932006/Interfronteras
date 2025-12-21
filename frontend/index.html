@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfronteras | Internet de Alta Velocidad</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-globe"></i> Inter<span>fronteras</span>
+        </div>
+        
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+    
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#inicio" onclick="toggleMenu()">Inicio</a></li>
+            <li><a href="#planes" onclick="toggleMenu()">Planes</a></li>
+            <li><a href="#" onclick="abrirModal(event); toggleMenu()" class="btn-pagar">
+                <i class="fa-solid fa-credit-card"></i> Pagar Factura
+            </a></li>
+        </ul>
+    </nav>
+
+    <header id="inicio" class="hero">
+        <div class="hero-content">
+            <h1>Conectando tu mundo sin límites</h1>
+            <p>Internet de fibra óptica estable, rápido y al mejor precio.</p>
+            <a href="#planes" class="btn-primary">Ver Planes</a>
+        </div>
+    </header>
+
+    <section id="planes" style="padding: 4rem; text-align: center;">
+        <h2>Nuestros Planes de Fibra</h2>
+        <p>Próximamente...</p>
+    </section>
+
+    <div id="modalPago" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-btn" onclick="cerrarModal()">&times;</span>
+            
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-receipt"></i> Zona de Pagos</h2>
+                <p>Digita tu documento para consultar tu deuda</p>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="documentoInput" placeholder="Número de Documento" autocomplete="off">
+                <button onclick="buscarFactura()">Consultar</button>
+            </div>
+
+            <div id="resultadoFacturas" class="results-area"></div>
+        </div>
+    </div>
+
+    <div id="modalTerminos" class="modal-overlay">
+        <div class="modal-box modal-lg"> <span class="close-btn" onclick="cerrarTerminos()">&times;</span>
+            
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-contract"></i> Términos y Condiciones</h2>
+                <p>Contrato de Prestación de Servicios de Telecomunicaciones</p>
+            </div>
+    
+            <div class="legal-scroll-area">
+                <h3>1. Objeto del Contrato</h3>
+                <p>El presente documento establece las condiciones bajo las cuales <strong>INTERFRONTERAS S.A.S.</strong> prestará los servicios de conexión a Internet y/o servicios conexos al <strong>SUSCRIPTOR</strong>.</p>
+                
+                <h3>2. Obligaciones del Cliente</h3>
+                <p>El cliente se compromete a utilizar el servicio para fines lícitos y a no revender, ceder o compartir la conexión con terceros sin autorización expresa. El cliente es responsable de la custodia de los equipos entregados en comodato (ONU, Router).</p>
+    
+                <h3>3. Pagos y Facturación</h3>
+                <p>El servicio se factura por periodos mensuales anticipados. El no pago de la factura dentro de la fecha límite ocasionará la suspensión del servicio. La reconexión tendrá un costo adicional establecido en las tarifas vigentes.</p>
+    
+                <h3>4. Velocidad y Disponibilidad</h3>
+                <p>Interfronteras garantiza la velocidad contratada hasta el equipo terminal de red (Router) entregado. La velocidad vía WiFi puede variar según obstáculos, distancia e interferencias ajenas a la empresa. Se garantiza una disponibilidad del servicio del 99.6% mensual.</p>
+    
+                <h3>5. Cláusula de Permanencia</h3>
+                <p>En caso de aplicar cláusula de permanencia mínima (según el plan contratado), esta no podrá ser superior a 12 meses, conforme a la resolución 5050 de la CRC.</p>
+    
+                <h3>6. Peticiones, Quejas y Recursos (PQR)</h3>
+                <p>El usuario tiene derecho a presentar PQR a través de nuestros canales de atención (Línea telefónica, correo electrónico, oficina física o página web). La empresa dispone de 15 días hábiles para dar respuesta.</p>
+    
+                <h3>7. Tratamiento de Datos (Habeas Data)</h3>
+                <p>Autorizo a Interfronteras S.A.S. para recolectar, almacenar y usar mis datos personales para fines de facturación, servicio técnico y reporte a centrales de riesgo en caso de mora, conforme a la Ley 1581 de 2012.</p>
+                
+                <br>
+                <p style="text-align: center; color: #888; font-size: 0.8rem;">Última actualización: Diciembre 2025</p>
+            </div>
+    
+            <div class="modal-footer-btn">
+                <button onclick="cerrarTerminos()" class="btn-primary" style="width: 100%;">Entendido, Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="footer-pro">
+        <div class="footer-container">
+            
+            <div class="footer-col">
+                <h3>Inter<span>fronteras</span></h3>
+                <p>Conectando tu mundo con la mejor velocidad y estabilidad del mercado.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+                <br>
+                <h4>Contáctanos</h4>
+                <p><i class="fa-solid fa-phone"></i> Línea Gratuita: 018000910165</p>
+                <p><i class="fa-solid fa-envelope"></i> contacto@interfronteras.com</p>
+            </div>
+    
+            <div class="footer-col">
+                <h4 class="sic-title">Superintendencia de Industria y Comercio</h4>
+                <ul class="footer-links sic-info">
+                    <li><a href="http://www.sic.gov.co" target="_blank">www.sic.gov.co</a></li>
+                    <li>Email: contactenos@sic.gov.co</li>
+                    <li>Carrera 13 No. 27 – 00, Pisos 3,4,5 y 10 Bogotá.</li>
+                    <li><strong>Horario:</strong> Lun-Vie 8:00 a.m. a 4:30 p.m.</li>
+                    <li><strong>Conmutador:</strong> (57 1) 587 00 00</li>
+                    <li><strong>Fax:</strong> (57 1) 587 02 84</li>
+                    <li><strong>Sede CAN:</strong> Av. Cra 50 No. 26 – 55 Int. 2 Bogotá.</li>
+                </ul>
+            </div>
+    
+            <div class="footer-col">
+                <h4>Servicio al Cliente</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Procedimiento y Trámite de PQR</a></li>
+                    <li><a href="#">Términos y condiciones del servicio</a></li>
+                    <li><a href="#">Indicadores de satisfacción</a></li>
+                    <li><a href="#">Comparador de tarifas</a></li>
+                    <li><a href="#">Mapa de Cobertura</a></li>
+                    <li><a href="#">Reportar robo o pérdida</a></li>
+                    <li><a href="#">Política de protección de datos</a></li>
+                    <li><a href="#">Paga tu factura</a></li>
+                </ul>
+            </div>
+    
+            <div class="footer-col">
+                <h4>Normatividad y Regulación</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Ley de Protección al Usuario</a></li>
+                    <li><a href="#">Decretos 464, 540 y 555</a></li>
+                    <li><a href="#">Homologación de equipos</a></li>
+                    <li><a href="#">En TIC Confío</a></li>
+                    <li><a href="#">No más SMS - Registro de Excluidos</a></li>
+                    <li><a href="#">Internet Sano (Control Parental)</a></li>
+                    <li><a href="#">Contra la pornografía infantil</a></li>
+                    <li><a href="#">Reciclaje de aparatos eléctricos</a></li>
+                </ul>
+            </div>
+        </div>
+    
+        <div class="legal-bar">
+            <p>
+                El servicio de internet es prestado por <strong>INTERFRONTERAS S.A.S.</strong> | 
+                El servicio de televisión y streaming es prestado por aliados estratégicos. 
+                <a href="#" onclick="abrirTerminos(event)">Ver Términos y Condiciones aquí.</a>            </p>
+            <p>&copy; 2025 Interfronteras S.A.S - Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

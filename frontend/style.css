@@ -1,0 +1,580 @@
+:root {
+    --color-primary: #0050D5; /* Azul del logo */
+    --color-secondary: #4CAF50; /* Verde del logo */
+    --color-dark: #1a1a1a;
+    --color-light: #f4f4f4;
+}
+
+/* =========================================
+   ESTILOS GENERALES
+   ========================================= */
+   body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif; /* Nueva fuente moderna */
+    background-color: var(--color-light);
+}
+
+/* =========================================
+   NAVBAR PRO (Efecto Transparente -> Sólido)
+   ========================================= */
+.navbar {
+    position: fixed; /* Fija en la parte superior */
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 5%; /* 5% a los lados para dar aire */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    transition: 0.4s ease; /* Transición suave de color */
+    box-sizing: border-box; /* Evita que el padding rompa el ancho */
+    background: transparent; /* Transparente al inicio */
+}
+
+/* Estado cuando bajamos el scroll (Se activa con JS) */
+.navbar.scrolled {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Sombra elegante */
+    padding: 0.8rem 5%; /* Se hace un poco más pequeña */
+}
+
+/* LOGO */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white; /* Blanco al inicio para ver sobre la imagen */
+    transition: 0.3s;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra para leerlo bien sobre foto */
+}
+
+/* Cuando la barra es blanca, el logo cambia de color */
+.navbar.scrolled .logo {
+    color: var(--color-secondary); /* Verde corporativo */
+    text-shadow: none;
+}
+
+.logo span {
+    color: var(--color-primary); /* La parte "fronteras" en azul siempre */
+}
+/* Forzamos el azul en el logo cuando hay scroll para contraste */
+.navbar.scrolled .logo span {
+    color: var(--color-primary); 
+}
+/* Forzamos blanco al inicio */
+.navbar:not(.scrolled) .logo span {
+    color: #fff;
+}
+
+
+/* ENLACES (Links) */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white; /* Blanco al inicio */
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: 0.3s;
+    position: relative;
+}
+
+/* Efecto de subrayado al pasar el mouse */
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-color: var(--color-secondary); /* Verde */
+    transition: width 0.3s;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Cuando hay scroll, los links se ponen oscuros */
+.navbar.scrolled .nav-links a {
+    color: var(--color-dark);
+}
+
+/* BOTÓN PAGAR (Nav) */
+.btn-pagar {
+    background-color: var(--color-primary); /* Azul */
+    color: white !important;
+    padding: 10px 25px !important; /* Forzamos tamaño */
+    border-radius: 50px; /* Borde muy redondo moderno */
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 80, 213, 0.4); /* Sombra azul brillante */
+    border: 2px solid transparent;
+}
+
+.btn-pagar:hover {
+    background-color: transparent;
+    border: 2px solid white;
+    transform: translateY(-2px); /* Se eleva un poquito */
+}
+
+.navbar.scrolled .btn-pagar:hover {
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary) !important;
+}
+
+/* HERO SECTION (Ajuste para compensar el navbar fijo) */
+.hero {
+    /* Mismos fondos de antes */
+    background: linear-gradient(rgba(0, 20, 60, 0.7), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    height: 100vh; /* Pantalla completa */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    padding-top: 60px; /* Espacio para que el texto no choque con el navbar */
+}
+
+.hero h1 { font-size: 3rem; margin-bottom: 10px; }
+.hero p { font-size: 1.2rem; margin-bottom: 20px; }
+
+.btn-primary {
+    background: var(--color-secondary);
+    color: white;
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+}
+
+/* Payment Section */
+.payment-section {
+    padding: 4rem 2rem;
+    background: white;
+    text-align: center;
+}
+
+.search-box {
+    margin: 20px 0;
+}
+
+.search-box input {
+    padding: 10px;
+    width: 250px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-box button {
+    padding: 10px 20px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.factura-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 10px auto;
+    max-width: 400px;
+    border-left: 5px solid var(--color-secondary);
+    text-align: left;
+    background: #f9f9f9;
+}
+
+/* ESTILOS DEL MODAL PRO */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Fondo oscuro */
+    backdrop-filter: blur(5px); /* Efecto borroso pro */
+    display: none; /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Estado visible del modal (se activa con JS) */
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animación de rebote suave */
+}
+
+/* Animación cuando aparece */
+.modal-overlay.active .modal-box {
+    transform: translateY(0) scale(1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #888;
+    transition: 0.2s;
+}
+
+.close-btn:hover {
+    color: var(--color-primary);
+}
+
+.modal-header h2 {
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.modal-header p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Ajuste del área de resultados dentro del modal */
+.results-area {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto; /* Scroll si hay muchas facturas */
+}
+
+/* =========================================
+   FOOTER PROFESIONAL
+   ========================================= */
+   .footer-pro {
+    background-color: #0b1c39; /* Azul muy oscuro (Casi negro) */
+    color: #b0b8c6; /* Texto gris claro para lectura suave */
+    padding: 60px 0 0 0;
+    font-size: 0.9rem;
+    margin-top: 50px;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    /* 4 Columnas automáticas */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+    gap: 40px;
+}
+
+.footer-col h3 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.footer-col h3 span {
+    color: var(--color-primary); /* Azul de tu marca */
+}
+
+.footer-col h4 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    border-bottom: 2px solid var(--color-secondary); /* Línea verde debajo del título */
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+/* Enlaces del footer */
+.footer-links a, .sic-info li {
+    color: #b0b8c6;
+    text-decoration: none;
+    transition: 0.3s;
+    display: block;
+    line-height: 1.6;
+}
+
+.footer-links a:hover {
+    color: var(--color-secondary); /* Se pone verde al pasar el mouse */
+    padding-left: 5px; /* Pequeño movimiento a la derecha */
+}
+
+/* Información de la SIC más pequeña */
+.sic-info li {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+}
+
+/* Redes Sociales */
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.social-links a {
+    color: white;
+    background: rgba(255,255,255,0.1);
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.social-links a:hover {
+    background: var(--color-primary);
+    transform: translateY(-3px);
+}
+
+/* Barra Legal Inferior */
+.legal-bar {
+    background-color: #050e1f; /* Un tono más oscuro aun */
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    font-size: 0.8rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.legal-bar p {
+    margin: 5px 0;
+    opacity: 0.7;
+}
+
+.legal-bar a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+/* =========================================
+   ESTILOS MÓVIL (APP STYLE) 📱
+   ========================================= */
+   
+/* El botón de hamburguesa está oculto en PC */
+.menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-dark);
+}
+
+@media (max-width: 768px) {
+
+    /* 1. NAVBAR TIPO APP */
+    .navbar {
+        background-color: white !important; /* Forzamos fondo blanco */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
+        position: fixed; /* Fija arriba */
+    }
+
+    /* 2. Logo con colores reales (No blanco) */
+    .logo {
+        color: var(--color-secondary) !important; /* "Inter" en Verde */
+        text-shadow: none !important; /* Quitamos la sombra borrosa */
+    }
+
+    .logo span {
+        color: var(--color-primary) !important; /* "fronteras" en Azul */
+    }
+
+    /* 3. El botón de las 3 rayitas (Hamburguesa) */
+    .menu-toggle {
+        color: var(--color-primary); /* Azul para que combine */
+        font-size: 1.8rem; /* Un poco más grande */
+    }
+
+    .menu-toggle {
+        display: block; /* Mostrar hamburguesa en móvil */
+    }
+
+    .nav-links {
+        display: none; /* Ocultar menú por defecto */
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 100%; /* Justo debajo de la barra */
+        left: 0;
+        background-color: white;
+        padding: 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideDown 0.3s ease forwards;
+    }
+
+    /* Clase para mostrar el menú con JS */
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 15px; /* Zona de toque grande */
+        font-size: 1.1rem;
+        color: #333
+    }
+
+    .btn-pagar {
+        background: var(--color-primary); /* Relleno completo en móvil */
+        border-radius: 0; /* Cuadrado para llenar el espacio */
+        width: 100%;
+        margin: 0;
+    }
+
+    /* 2. HERO (BANNER) AJUSTADO */
+    .hero {
+        height: 60vh; /* Altura ideal para celulares */
+        padding: 0 1.5rem;
+        background-position: 65%; /* Centrar mejor la imagen */
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+        line-height: 1.2;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+
+    .btn-primary {
+        display: block;       /* Se comporta como un bloque */
+        width: 100%;          /* Ocupa todo el ancho disponible */
+        box-sizing: border-box; /* ¡CLAVE! Hace que el padding no aumente el tamaño total */
+        padding: 15px;
+        font-size: 1.2rem;
+        margin: 15px auto 0 auto; /* Centrado automático y espacio arriba */
+        text-align: center;   /* Asegura que el texto dentro del botón esté centrado */
+    }
+
+    /* 3. MODAL FULL WIDTH (Tipo Hoja Inferior) */
+    .modal-box {
+        width: 95%; /* Casi todo el ancho */
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        box-sizing: border-box; /* Evita que se salga */
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .search-box button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .footer-container {
+        grid-template-columns: 1fr; /* Una sola columna */
+        text-align: center;
+    }
+    
+    .footer-links a:hover {
+        padding-left: 0; /* Sin efecto de movimiento en celular */
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+}
+
+/* Animación suave para el menú */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   ESTILOS MODAL TÉRMINOS
+   ========================================= */
+
+/* Hacemos la caja un poco más ancha para leer mejor */
+.modal-box.modal-lg {
+    max-width: 700px; 
+}
+
+/* Área de texto con scroll */
+.legal-scroll-area {
+    text-align: left; /* Texto alineado a la izquierda para leer bien */
+    max-height: 400px; /* Altura máxima */
+    overflow-y: auto; /* Activa el scroll si el texto es muy largo */
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.legal-scroll-area h3 {
+    color: var(--color-primary);
+    font-size: 1.1rem;
+    margin-top: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.legal-scroll-area p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+/* Estilizar la barra de scroll para que se vea moderna */
+.legal-scroll-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.legal-scroll-area::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+
+.legal-scroll-area::-webkit-scrollbar-thumb {
+    background: #ccc; 
+    border-radius: 4px;
+}
+
+.legal-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary); 
+}
