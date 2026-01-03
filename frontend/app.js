@@ -4,7 +4,7 @@ const API_URL = "";
 
 const handler = ePayco.checkout.configure({
     key: 'b459d654998c6fea2f9c6b9e1cacb960', // TU PUBLIC_KEY
-    test: false // true para pruebas, false para producción
+    test: true // true para pruebas, false para producción
   });
 
 function abrirModal(e) {
@@ -83,44 +83,26 @@ async function buscarFactura() {
 
 // NUEVA FUNCIÓN DE PAGO CON EPAYCO
 function iniciarPagoEpayco(idFactura, monto, descripcion) {
-    
     const data = {
         name: "Servicio Internet - " + descripcion,
         description: "Pago factura #" + idFactura,
+        invoice: idFactura + "-" + Date.now(), 
+        currency: "cop",
+        amount: parseInt(monto), 
+        tax_base: "0",
+        tax: "0",
+        country: "co",
+        lang: "es",
+        external: "true", // Redirección obligatoria para túneles
+        
         name_billing: "Cliente Pruebas",
         address_billing: "Calle 123",
         type_doc_billing: "cc",
         mobilephone_billing: "3000000000",
         number_doc_billing: "123456789",
-        
-        // CAMBIO IMPORTANTE: Agregamos un número único para que no diga "Duplicada"
-        invoice: idFactura + "-" + Date.now(), 
-        
-        currency: "cop",
-        
-        // CAMBIO 2: Asegúrate de enviar un número, no texto
-        amount: parseInt(monto), 
-        
-        tax_base: "0",
-        tax: "0",
-        country: "co",
-        lang: "es",
-        external: "true", // Esto ya lo tenías
 
-        // Atributos opcionales del cliente (puedes llenarlos si los tienes)
-        // name_billing: "Alejandro Marmolejo",
-        // address_billing: "Calle 123",
-        // type_doc_billing: "cc",
-
-        // URLS DE RESPUESTA
-        // confirmation: Es la URL que ePayco llama en "background" para confirmar el pago.
-        // IMPORTANTE: En localhost esto NO funcionará automáticamente a menos que uses ngrok.
         confirmation: `${window.location.origin}/api/confirmacion`, 
-        
-        // response: A donde vuelve el usuario después de pagar
         response: `${window.location.origin}/index.html`,
-
-        // Métodos habilitados (opcional)
         methodsDisable: []
     };
 
