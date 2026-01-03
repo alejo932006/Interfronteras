@@ -4,7 +4,7 @@ const API_URL = "";
 
 const handler = ePayco.checkout.configure({
     key: 'b459d654998c6fea2f9c6b9e1cacb960', // TU PUBLIC_KEY
-    test: true // true para pruebas, false para producción
+    test: false // true para pruebas, false para producción
   });
 
 function abrirModal(e) {
@@ -85,19 +85,27 @@ async function buscarFactura() {
 function iniciarPagoEpayco(idFactura, monto, descripcion) {
     
     const data = {
-        // Parametros compra (obligatorio)
         name: "Servicio Internet - " + descripcion,
         description: "Pago factura #" + idFactura,
-        invoice: idFactura, // Este ID es clave para que el backend sepa qué actualizar
+        name_billing: "Cliente Pruebas",
+        address_billing: "Calle 123",
+        type_doc_billing: "cc",
+        mobilephone_billing: "3000000000",
+        number_doc_billing: "123456789",
+        
+        // CAMBIO IMPORTANTE: Agregamos un número único para que no diga "Duplicada"
+        invoice: idFactura + "-" + Date.now(), 
+        
         currency: "cop",
-        amount: monto,
+        
+        // CAMBIO 2: Asegúrate de enviar un número, no texto
+        amount: parseInt(monto), 
+        
         tax_base: "0",
         tax: "0",
         country: "co",
         lang: "es",
-
-        // Onpage="false" - Standard="true"
-        external: "false",
+        external: "true", // Esto ya lo tenías
 
         // Atributos opcionales del cliente (puedes llenarlos si los tienes)
         // name_billing: "Alejandro Marmolejo",
@@ -110,7 +118,7 @@ function iniciarPagoEpayco(idFactura, monto, descripcion) {
         confirmation: `${window.location.origin}/api/confirmacion`, 
         
         // response: A donde vuelve el usuario después de pagar
-        response: `${window.location.origin}/frontend/index.html`,
+        response: `${window.location.origin}/index.html`,
 
         // Métodos habilitados (opcional)
         methodsDisable: []
