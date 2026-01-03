@@ -58,66 +58,6 @@ app.get('/api/facturas/:documento', async (req, res) => {
   }
 });
 
-// 3. Simular Pago
-app.post('/api/pagar/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await pool.query("UPDATE facturas SET estado = 'pagado' WHERE id = $1", [id]);
-    res.json({ message: 'Pago registrado con éxito.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error al procesar el pago');
-  }
-});
-
-// --- NUEVO ENDPOINT DE PAGO (SIMULADO) ---
-
-// --- SIMULACIÓN DE PASARELA DE PAGOS (DAVIVIENDA MOCK) ---
-app.post('/api/iniciar-pago', async (req, res) => {
-  const { facturaId } = req.body;
-
-  console.log(`📡 Iniciando intento de pago para factura #${facturaId}...`);
-
-  try {
-    // 1. Verificar que la factura exista y esté pendiente
-    const checkQuery = "SELECT * FROM facturas WHERE id = $1 AND estado = 'pendiente'";
-    const check = await pool.query(checkQuery, [facturaId]);
-
-    if (check.rows.length === 0) {
-      return res.status(400).json({ success: false, message: 'Factura ya pagada o inválida' });
-    }
-
-    // 2. SIMULACIÓN: Esperamos 2 segundos (como si el banco procesara)
-    await new Promise(resolve => setTimeout(resolve, 2000)); 
-
-    // 3. Generamos un código falso de aprobación
-    const referenciaFalsa = 'DAV-' + Math.floor(Math.random() * 1000000) + '-TEST';
-    
-    // 4. Actualizamos la base de datos como "Pagado"
-    const updateQuery = `
-        UPDATE facturas 
-        SET estado = 'pagado', 
-            referencia_pago = $1, 
-            fecha_pago = NOW() 
-        WHERE id = $2
-    `;
-    await pool.query(updateQuery, [referenciaFalsa, facturaId]);
-
-    console.log(`✅ Pago exitoso simulado: ${referenciaFalsa}`);
-
-    // 5. Respondemos al Frontend
-    res.json({ 
-        success: true, 
-        message: 'Transacción Aprobada', 
-        referencia: referenciaFalsa 
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Error de conexión con el banco' });
-  }
-});
-
 // --- RUTA DE CONFIRMACIÓN (WEBHOOK) ---
 // Esta ruta la llama ePayco automáticamente cuando el pago es exitoso
 app.post('/api/confirmacion', async (req, res) => {
