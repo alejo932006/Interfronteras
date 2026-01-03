@@ -2,6 +2,11 @@ const API_URL = "";
 
 // --- LÓGICA DEL MODAL ---
 
+const handler = ePayco.checkout.configure({
+    key: 'b459d654998c6fea2f9c6b9e1cacb960', // TU PUBLIC_KEY
+    test: true // true para pruebas, false para producción
+  });
+
 function abrirModal(e) {
     if(e) e.preventDefault(); // Evita que la página salte hacia arriba
     const modal = document.getElementById('modalPago');
@@ -33,7 +38,7 @@ async function buscarFactura() {
     const documento = document.getElementById('documentoInput').value;
     const resultadoDiv = document.getElementById('resultadoFacturas');
     
-    if(!documento) return; // Si está vacío no hace nada
+    if(!documento) return;
 
     resultadoDiv.innerHTML = '<p style="color:#666"><i class="fa-solid fa-spinner fa-spin"></i> Buscando...</p>';
 
@@ -52,6 +57,7 @@ async function buscarFactura() {
         
         resultadoDiv.innerHTML = '';
         facturas.forEach(f => {
+            // Pasamos los datos directamente a la función pagar
             resultadoDiv.innerHTML += `
                 <div class="factura-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -62,8 +68,8 @@ async function buscarFactura() {
                     <h2 style="margin:10px 0; color:var(--color-secondary);">$${parseInt(f.monto).toLocaleString()}</h2>
                     <p style="font-size:0.8rem; color:#888;">Vence: ${f.fecha_vencimiento.split('T')[0]}</p>
                     
-                    <button onclick="pagar(${f.id}, this)" class="btn-pagar" style="width:100%; margin-top:10px; cursor:pointer;">
-                        Pagar con Davivienda
+                    <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pagar" style="width:100%; margin-top:10px; cursor:pointer;">
+                        Pagar con ePayco
                     </button>
                 </div>
             `;
@@ -75,45 +81,44 @@ async function buscarFactura() {
     }
 }
 
-async function pagar(id, btnElement) {
-    if(!confirm("¿Deseas ir a la pasarela de pagos?")) return;
+// NUEVA FUNCIÓN DE PAGO CON EPAYCO
+function iniciarPagoEpayco(idFactura, monto, descripcion) {
+    
+    const data = {
+        // Parametros compra (obligatorio)
+        name: "Servicio Internet - " + descripcion,
+        description: "Pago factura #" + idFactura,
+        invoice: idFactura, // Este ID es clave para que el backend sepa qué actualizar
+        currency: "cop",
+        amount: monto,
+        tax_base: "0",
+        tax: "0",
+        country: "co",
+        lang: "es",
 
-    const textoOriginal = btnElement.innerHTML;
-    btnElement.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando...';
-    btnElement.disabled = true;
-    btnElement.style.opacity = "0.7";
+        // Onpage="false" - Standard="true"
+        external: "false",
 
-    try {
-        const response = await fetch(`${API_URL}/api/iniciar-pago`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ facturaId: id })
-        });
+        // Atributos opcionales del cliente (puedes llenarlos si los tienes)
+        // name_billing: "Alejandro Marmolejo",
+        // address_billing: "Calle 123",
+        // type_doc_billing: "cc",
 
-        const data = await response.json();
+        // URLS DE RESPUESTA
+        // confirmation: Es la URL que ePayco llama en "background" para confirmar el pago.
+        // IMPORTANTE: En localhost esto NO funcionará automáticamente a menos que uses ngrok.
+        confirmation: `${window.location.origin}/api/confirmacion`, 
+        
+        // response: A donde vuelve el usuario después de pagar
+        response: `${window.location.origin}/frontend/index.html`,
 
-        if (data.success) {
-            btnElement.innerHTML = '<i class="fa-solid fa-check"></i> ¡Pagado!';
-            btnElement.style.backgroundColor = "#28a745";
-            
-            setTimeout(() => {
-                alert(`Pago exitoso.\nRef: ${data.referencia}`);
-                buscarFactura(); // Refrescar lista dentro del modal
-            }, 500);
-            
-        } else {
-            alert("Error: " + data.message);
-            btnElement.innerHTML = textoOriginal;
-            btnElement.disabled = false;
-            btnElement.style.opacity = "1";
-        }
+        // Métodos habilitados (opcional)
+        methodsDisable: []
+    };
 
-    } catch (error) {
-        alert("Error de red");
-        btnElement.innerHTML = textoOriginal;
-        btnElement.disabled = false;
-    }
+    handler.open(data);
 }
+
 
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
