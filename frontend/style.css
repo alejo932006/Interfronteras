@@ -379,150 +379,437 @@
 }
 
 /* =========================================
-   ESTILOS MÓVIL (APP STYLE) 📱
+   ESTILOS NUEVOS: PLANES Y COBERTURA
    ========================================= */
-   
-/* El botón de hamburguesa está oculto en PC */
-.menu-toggle {
-    display: none;
+
+   .container-width {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* SECCIÓN PLANES - FONDO MEJORADO */
+.planes-section {
+    padding: 6rem 0; /* Un poco más de espacio vertical */
+    text-align: center;
+    position: relative; /* Necesario para los elementos decorativos */
+    background-color: #fff; /* Color base */
+    overflow: hidden; /* Para que nada se salga de la sección */
+    /* Un degradado diagonal muy sutil de blanco a un azul casi imperceptible */
+    background: linear-gradient(135deg, #ffffff 60%, #f4f9ff 100%);
+    z-index: 1;
+}
+
+/* Elemento decorativo sutil (una mancha de luz verde en la esquina superior derecha) */
+.planes-section::before {
+    content: '';
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 500px;
+    height: 500px;
+    /* Usa el color secundario (verde) pero muy transparente y desenfocado */
+    background: radial-gradient(circle, rgba(37, 211, 102, 0.04) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: -1; /* Se coloca detrás del contenido */
+    pointer-events: none;
+}
+
+/* Otro elemento decorativo sutil (abajo a la izquierda, azulado) */
+.planes-section::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -100px;
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse at center, rgba(13, 110, 253, 0.03) 0%, rgba(255,255,255,0) 70%);
+    transform: rotate(-30deg);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* TÍTULOS PRO */
+.planes-section h2 {
+    font-size: 3rem; /* Más grande */
+    font-weight: 800; /* Mucho más grueso */
+    color: var(--color-dark);
+    margin-bottom: 1.5rem;
+    letter-spacing: -1px; /* Letras un poco más juntas para un look moderno */
+    position: relative;
+    display: inline-block; /* Necesario para la línea decorativa */
+}
+
+/* Línea decorativa debajo del título H2 */
+.planes-section h2::after {
+    content: '';
+    display: block;
+    width: 80px; /* Ancho de la línea */
+    height: 4px;  /* Grosor de la línea */
+    background: var(--color-secondary); /* Color verde */
+    margin: 20px auto 0 auto; /* Centrado y separado del texto */
+    border-radius: 2px; /* Bordes redondeados en la línea */
+}
+
+.highlight {
+    color: var(--color-primary);
+    /* Opcional: si quieres que el texto resaltado también tenga un fondo sutil */
+    /* background: linear-gradient(120deg, transparent 60%, rgba(13, 110, 253, 0.1) 60%); */
+}
+
+.subtitle {
+    font-size: 1.25rem; /* Un poco más grande */
+    font-weight: 500; /* Peso medio */
+    color: #555;
+    margin-bottom: 4rem; /* Más separación con las tarjetas */
+    max-width: 700px; /* Evita que el subtítulo sea muy ancho en pantallas grandes */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    justify-content: center;
+}
+
+/* TARJETA DE PLAN */
+.plan-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    padding: 2rem;
+    transition: 0.3s;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.plan-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    border-color: var(--color-primary);
+}
+
+/* Estilo para el plan recomendado (opcional, puse el de 50 como ejemplo) */
+/* 1. Ajuste para la tarjeta recomendada en móvil */
+.plan-card.recommended {
+    /* Damos un poco más de espacio arriba para que quepa el botón */
+    padding-top: 35px; 
+    position: relative; /* Aseguramos que sea la referencia */
+}
+
+/* 2. Reposicionamos la etiqueta "Más Popular" */
+.tag {
+    /* Opción A: Que siga flotando pero más arriba */
+    top: -12px;       /* Lo subimos para que quede en el borde */
+    left: 50%;        /* Lo centramos horizontalmente */
+    transform: translateX(-50%); /* Ajuste fino del centrado */
+    width: max-content; /* Que no se estire */
+    font-size: 0.75rem; /* Letra un poco más pequeña */
+    padding: 4px 12px;
+    border-radius: 12px; /* Más redondeado */
+    
+    /* Aseguramos que no tape nada */
+    z-index: 10;
+}
+
+/* 3. Opcional: Bajar un poco el título si todavía se siente apretado */
+.plan-card.recommended .plan-header {
+    margin-top: 5px;
+}
+
+.plan-card .tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-secondary);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.plan-header h3 {
+    margin: 0;
     font-size: 1.5rem;
-    cursor: pointer;
     color: var(--color-dark);
 }
 
-@media (max-width: 768px) {
-
-    /* 1. NAVBAR TIPO APP */
-    .navbar {
-        background-color: white !important; /* Forzamos fondo blanco */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
-        position: fixed; /* Fija arriba */
-    }
-
-    /* 2. Logo con colores reales (No blanco) */
-    .logo {
-        color: var(--color-secondary) !important; /* "Inter" en Verde */
-        text-shadow: none !important; /* Quitamos la sombra borrosa */
-    }
-
-    .logo span {
-        color: var(--color-primary) !important; /* "fronteras" en Azul */
-    }
-
-    /* 3. El botón de las 3 rayitas (Hamburguesa) */
-    .menu-toggle {
-        color: var(--color-primary); /* Azul para que combine */
-        font-size: 1.8rem; /* Un poco más grande */
-    }
-
-    .menu-toggle {
-        display: block; /* Mostrar hamburguesa en móvil */
-    }
-
-    .nav-links {
-        display: none; /* Ocultar menú por defecto */
-        flex-direction: column;
-        width: 100%;
-        position: absolute;
-        top: 100%; /* Justo debajo de la barra */
-        left: 0;
-        background-color: white;
-        padding: 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        animation: slideDown 0.3s ease forwards;
-    }
-
-    /* Clase para mostrar el menú con JS */
-    .nav-links.active {
-        display: flex;
-    }
-
-    .nav-links li {
-        width: 100%;
-        text-align: center;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .nav-links a {
-        display: block;
-        padding: 15px; /* Zona de toque grande */
-        font-size: 1.1rem;
-        color: #333
-    }
-
-    .btn-pagar {
-        background: var(--color-primary); /* Relleno completo en móvil */
-        border-radius: 0; /* Cuadrado para llenar el espacio */
-        width: 100%;
-        margin: 0;
-    }
-
-    /* 2. HERO (BANNER) AJUSTADO */
-    .hero {
-        height: 60vh; /* Altura ideal para celulares */
-        padding: 0 1.5rem;
-        background-position: 65%; /* Centrar mejor la imagen */
-    }
-
-    .hero h1 {
-        font-size: 2.2rem;
-        line-height: 1.2;
-    }
-
-    .hero p {
-        font-size: 1rem;
-        padding: 0 10px;
-    }
-
-    .btn-primary {
-        display: block;       /* Se comporta como un bloque */
-        width: 100%;          /* Ocupa todo el ancho disponible */
-        box-sizing: border-box; /* ¡CLAVE! Hace que el padding no aumente el tamaño total */
-        padding: 15px;
-        font-size: 1.2rem;
-        margin: 15px auto 0 auto; /* Centrado automático y espacio arriba */
-        text-align: center;   /* Asegura que el texto dentro del botón esté centrado */
-    }
-
-    /* 3. MODAL FULL WIDTH (Tipo Hoja Inferior) */
-    .modal-box {
-        width: 95%; /* Casi todo el ancho */
-        padding: 1.5rem;
-        border-radius: 20px;
-    }
-    
-    .search-box input {
-        width: 100%;
-        box-sizing: border-box; /* Evita que se salga */
-        padding: 12px;
-        font-size: 1rem;
-    }
-    
-    .search-box button {
-        width: 100%;
-        margin-top: 10px;
-        padding: 12px;
-        font-size: 1rem;
-    }
-
-    .footer-container {
-        grid-template-columns: 1fr; /* Una sola columna */
-        text-align: center;
-    }
-    
-    .footer-links a:hover {
-        padding-left: 0; /* Sin efecto de movimiento en celular */
-    }
-    
-    .social-links {
-        justify-content: center;
-    }
+.price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 10px 0;
 }
 
-/* Animación suave para el menú */
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.price span {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #888;
+}
+
+.speed {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    text-align: left;
+}
+
+.features li {
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.features i {
+    color: var(--color-secondary);
+    margin-right: 10px;
+}
+
+.btn-plan {
+    display: inline-block;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-plan:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* =========================================
+   SECCIÓN COBERTURA: ESTILO "TECH BANNER"
+   ========================================= */
+
+   .coverage-section {
+    padding: 0 0 6rem 0; /* Quitamos padding superior para que el banner pegue arriba */
+    position: relative;
+    background-color: #f4f7fb; /* Fondo base un poco más azulado */
+    /* Mantenemos los puntos pero más sutiles */
+    background-image: radial-gradient(#dae1e7 1px, transparent 1px);
+    background-size: 25px 25px;
+    overflow: hidden;
+}
+
+/* === NUEVO BANNER TECNOLÓGICO === */
+.coverage-banner {
+    position: relative;
+    /* Fondo oscuro degradado: Azul profundo a un tono más verdoso */
+    background: linear-gradient(135deg, #0a1930 0%, #0d2d5e 60%, #004e92 100%);
+    padding: 5rem 2rem 8rem 2rem; /* Mucho padding abajo para que las tarjetas se superpongan */
+    text-align: center;
+    color: white;
+    overflow: hidden;
+    /* Forma curva en la parte inferior del banner */
+    border-bottom-left-radius: 50% 20%;
+    border-bottom-right-radius: 50% 20%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: -60px; /* Hacemos que el contenido de abajo suba y se monte */
+    z-index: 1;
+}
+
+/* Patrón de circuitos superpuesto en el banner (CSS puro) */
+.coverage-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 50px 50px;
+    background-position: -1px -1px, -1px -1px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Contenido del banner (texto e icono) */
+.banner-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.banner-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    /* Efecto de brillo en el icono */
+    background: linear-gradient(to right, var(--color-secondary), var(--color-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(37, 211, 102, 0.4));
+}
+
+.coverage-banner h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.coverage-banner .subtitle {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 400;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Rayos de luz decorativos (Animados) */
+.light-streak {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    height: 2px;
+    width: 60%;
+    transform: rotate(-45deg);
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.ls-1 { top: 20%; left: -10%; animation: streakMove 7s infinite linear; }
+.ls-2 { top: 50%; left: -20%; width: 80%; animation: streakMove 10s infinite linear; animation-delay: 1s; }
+.ls-3 { top: 80%; left: 30%; width: 40%; animation: streakMove 12s infinite linear; animation-delay: 3s; }
+
+@keyframes streakMove {
+    0% { transform: translateX(-100%) rotate(-45deg); opacity: 0; }
+    20% { opacity: 0.5; }
+    80% { opacity: 0.5; }
+    100% { transform: translateX(200%) rotate(-45deg); opacity: 0; }
+}
+
+
+/* === GRID Y TARJETAS (Ajustados para el nuevo diseño) === */
+.coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 35px;
+    margin-top: 0; /* Quitamos margen porque ya se superpone */
+    position: relative;
+    z-index: 10; /* Por encima del banner */
+    align-items: start;
+    padding: 0 20px;
+}
+
+.zone-card {
+    background: white;
+    padding: 0;
+    border-radius: 16px;
+    /* Sombra más fuerte para que destaque sobre el banner */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.5); /* Borde sutil */
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(10px); /* Efecto de cristal sutil si el navegador lo soporta */
+}
+
+.zone-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(13, 110, 253, 0.15);
+}
+
+/* Barra superior de color */
+.zone-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+}
+
+/* Cabecera de la tarjeta */
+.zone-card h3 {
+    background: #fff;
+    margin: 0;
+    padding: 25px;
+    font-size: 1.5rem;
+    color: var(--color-dark);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.zone-card h3 i {
+    color: var(--color-primary);
+    background: rgba(13, 110, 253, 0.1);
+    padding: 10px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+/* Cuerpo y lista */
+.zone-card ul {
+    list-style: none;
+    padding: 10px 25px 30px 25px;
+    margin: 0;
+    background: #fff;
+}
+
+.zone-card ul li {
+    padding: 12px 10px;
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+    border-bottom: 1px solid #f5f5f5;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.zone-card ul li:last-child { border-bottom: none; }
+
+.zone-card ul li::before {
+    content: '\f1eb'; /* Icono de WiFi pequeño de FontAwesome */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.8rem;
+    color: #d0d0d0;
+    margin-right: 12px;
+    transition: 0.2s;
+}
+
+.zone-card ul li:hover {
+    background-color: #f0f7ff;
+    color: var(--color-primary);
+    padding-left: 15px;
+    border-radius: 8px;
+}
+
+.zone-card ul li:hover::before {
+    color: var(--color-secondary);
+    transform: scale(1.2);
+}
+
+/* Ajuste para tarjetas con múltiples zonas */
+.zone-card h3:not(:first-child) {
+    border-top: 1px solid #eee;
+    margin-top: 10px;
 }
 
 /* =========================================
@@ -578,3 +865,40 @@
 .legal-scroll-area::-webkit-scrollbar-thumb:hover {
     background: var(--color-primary); 
 }
+
+/* Estilo del contenedor del Banner */
+.banner-titulo {
+    /* Degradado de Azul (#2563eb) a Verde (#16a34a) */
+    background: linear-gradient(90deg, #2563eb 0%, #16a34a 100%);
+    border-radius: 15px;       /* Bordes redondeados */
+    padding: 50px 20px;        /* Espacio interno (arriba/abajo, lados) */
+    margin-bottom: 50px;       /* Separación con las tarjetas de abajo */
+    text-align: center;        /* Centrar todo el texto */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+/* Forzamos que el título H2 dentro del banner sea blanco */
+.banner-titulo h2 {
+    color: white !important;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 2.5rem; /* Puedes ajustar el tamaño aquí */
+}
+
+/* Importante: Cambiamos el color de "Fibra Óptica" a blanco o un verde muy claro */
+.banner-titulo .highlight {
+    color: #ffffff !important; 
+    /* Opcional: si quieres que resalte más, usa un amarillo pálido: #fef08a */
+}
+
+/* Estilo del subtítulo dentro del banner */
+.banner-titulo .subtitle {
+    color: rgba(255, 255, 255, 0.9) !important; /* Blanco con un poco de transparencia */
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+
+
+
+

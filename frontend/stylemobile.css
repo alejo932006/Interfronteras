@@ -1,0 +1,293 @@
+/* =========================================
+   ESTILOS MÓVIL (APP STYLE) 📱
+   ========================================= */
+   
+/* El botón de hamburguesa está oculto en PC */
+.menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-dark);
+}
+
+@media (max-width: 768px) {
+
+    /* 1. NAVBAR TIPO APP */
+    .navbar {
+        background-color: white !important; /* Forzamos fondo blanco */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra suave */
+        position: fixed; /* Fija arriba */
+    }
+
+    /* 2. Logo con colores reales (No blanco) */
+    .logo {
+        color: var(--color-secondary) !important; /* "Inter" en Verde */
+        text-shadow: none !important; /* Quitamos la sombra borrosa */
+    }
+
+    .logo span {
+        color: var(--color-primary) !important; /* "fronteras" en Azul */
+    }
+
+    /* 3. El botón de las 3 rayitas (Hamburguesa) */
+    .menu-toggle {
+        color: var(--color-primary); /* Azul para que combine */
+        font-size: 1.8rem; /* Un poco más grande */
+    }
+
+    .menu-toggle {
+        display: block; /* Mostrar hamburguesa en móvil */
+    }
+
+    .nav-links {
+        display: none; /* Ocultar menú por defecto */
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 100%; /* Justo debajo de la barra */
+        left: 0;
+        background-color: white;
+        padding: 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideDown 0.3s ease forwards;
+    }
+
+    /* Clase para mostrar el menú con JS */
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 15px; /* Zona de toque grande */
+        font-size: 1.1rem;
+        color: #333
+    }
+
+    .btn-pagar {
+        background: var(--color-primary); /* Relleno completo en móvil */
+        border-radius: 0; /* Cuadrado para llenar el espacio */
+        width: 100%;
+        margin: 0;
+    }
+
+    /* 2. HERO (BANNER) AJUSTADO */
+    .hero {
+        height: 60vh; /* Altura ideal para celulares */
+        padding: 0 1.5rem;
+        background-position: 65%; /* Centrar mejor la imagen */
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+        line-height: 1.2;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+
+    .btn-primary {
+        display: block;       /* Se comporta como un bloque */
+        width: 100%;          /* Ocupa todo el ancho disponible */
+        box-sizing: border-box; /* ¡CLAVE! Hace que el padding no aumente el tamaño total */
+        padding: 15px;
+        font-size: 1.2rem;
+        margin: 15px auto 0 auto; /* Centrado automático y espacio arriba */
+        text-align: center;   /* Asegura que el texto dentro del botón esté centrado */
+    }
+
+    /* 3. MODAL FULL WIDTH (Tipo Hoja Inferior) */
+    .modal-box {
+        width: 95%; /* Casi todo el ancho */
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        box-sizing: border-box; /* Evita que se salga */
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .search-box button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .footer-container {
+        grid-template-columns: 1fr; /* Una sola columna */
+        text-align: center;
+    }
+    
+    .footer-links a:hover {
+        padding-left: 0; /* Sin efecto de movimiento en celular */
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+}
+
+/* Animación suave para el menú */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ajustes Responsive para Móviles */
+@media (max-width: 768px) {
+    .planes-section, .coverage-section {
+        padding: 3rem 1rem;
+    }
+    
+    .plan-card {
+        margin-bottom: 20px;
+    }
+}
+
+/* Ajuste para móviles de los títulos nuevos */
+@media (max-width: 768px) {
+    .planes-section h2 {
+        font-size: 2.2rem;
+    }
+    .planes-section h2::after {
+        width: 60px;
+        height: 3px;
+        margin-top: 15px;
+    }
+}
+
+/* MÓVIL */
+@media (max-width: 768px) {
+    .coverage-banner {
+        padding: 4rem 1rem 6rem 1rem;
+        border-bottom-left-radius: 30% 10%;
+        border-bottom-right-radius: 30% 10%;
+    }
+    .coverage-banner h2 {
+        font-size: 2.2rem;
+    }
+    .coverage-grid {
+        margin-top: -40px; /* Menos superposición en móvil */
+        gap: 25px;
+    }
+}
+
+/* --- VERSIÓN MÓVIL (Pantallas menores a 768px) --- */
+@media (max-width: 768px) {
+    
+    /* 1. Forzamos las 2 columnas */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
+        gap: 10px; /* Espacio pequeño entre tarjetas */
+        padding: 0 5px; /* Margen lateral mínimo */
+    }
+
+    /* 2. Reducimos el tamaño de la tarjeta para que quepa el texto */
+    .plan-card {
+        padding: 15px 10px; /* Menos "aire" dentro de la tarjeta */
+    }
+
+    /* 3. Ajustamos tamaños de fuente para que no se rompa el diseño */
+    .plan-header h3 {
+        font-size: 1.1rem; /* Nombre del plan más pequeño */
+        margin-bottom: 5px;
+    }
+
+    .price {
+        font-size: 1.2rem; /* Precio un poco más chico */
+    }
+    
+    /* Truco: Poner el "/mes" debajo del precio si ocupa mucho espacio */
+    .price span {
+        font-size: 0.8rem;
+    }
+
+    .plan-body .speed {
+        font-size: 1.1rem; /* "50 Megas" más pequeño */
+    }
+
+    /* 4. Letra de la lista de beneficios más compacta */
+    .features {
+        padding-left: 0; /* Quitar sangría extra */
+        margin: 10px 0;
+    }
+
+    .features li {
+        font-size: 0.85rem; /* Letra pequeña */
+        margin-bottom: 5px;
+        line-height: 1.2;
+    }
+
+    /* 5. Ajustar el botón */
+    .btn-plan {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        
+        /* CAMBIA ESTO: de width: 100% a width: fit-content */
+        width: fit-content; 
+        
+        /* Asegura que se centre también en móvil */
+        margin: 10px auto 0 auto; 
+        display: block;
+    }
+
+/* --- DENTRO DE @media (max-width: 768px) --- */
+
+.coverage-grid {
+    display: flex;          /* Usamos Flexbox para controlar el flujo */
+    flex-direction: column; /* Una tarjeta debajo de la otra */
+    gap: 30px;              /* ¡Importante! Espacio grande entre tarjeta y tarjeta */
+    padding: 0 10px;        /* Un poco de margen a los lados de la pantalla */
+}
+
+/* 2. LA TARJETA INDIVIDUAL: 
+   Le damos estilo de "caja" para que se diferencie del fondo */
+.zone-card {
+    background-color: #ffffff; /* Fondo blanco */
+    border-radius: 12px;       /* Bordes redondeados */
+    padding: 20px;             /* Espacio interno */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* Sombra suave para que "flote" */
+    height: auto;              /* Dejamos que crezca según la lista de barrios */
+    width: 100%;               /* Que use todo el ancho disponible */
+    box-sizing: border-box;    /* Para que el padding no rompa el ancho */
+}
+
+/* 3. EL TÍTULO DE LA CIUDAD (ej: Sevilla) */
+.zone-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #16a34a; /* Verde corporativo */
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
+}
+
+/* 4. LA LISTA DE BARRIOS (Esto se queda en 2 columnas como querías) */
+.zone-card ul {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas internas */
+    gap: 5px 10px;
+    padding: 0;
+    margin: 0;
+}
+
+.zone-card ul li {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    list-style: none;
+}
+
+}
+
