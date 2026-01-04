@@ -1,157 +1,151 @@
 const API_URL = ""; 
+// Tu URL del túnel (verifícala siempre, si se cierra cloudflare cambia)
+const CLOUDFLARE_URL = "https://was-spyware-ending-electoral.trycloudflare.com"; 
 
-// --- LÓGICA DEL MODAL ---
+// --- LÓGICA DE VALIDACIÓN (Al volver del pago) ---
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refPayco = urlParams.get('ref_payco');
 
-const handler = ePayco.checkout.configure({
-    key: 'b459d654998c6fea2f9c6b9e1cacb960', // TU PUBLIC_KEY
-    test: true // true para pruebas, false para producción
-  });
+    if (refPayco) {
+        // Limpiamos la URL
+        window.history.replaceState({}, document.title, "/");
+        
+        // Consultamos el estado
+        fetch(`https://secure.epayco.co/validation/v1/reference/${refPayco}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const estado = data.data.x_cod_response;
+                    if (estado == 1) alert("✅ ¡Pago Exitoso! Gracias.");
+                    else if (estado == 2 || estado == 4) alert("❌ El pago fue rechazado.");
+                    else if (estado == 3) alert("⏳ Pago pendiente.");
+                }
+            })
+            .catch(e => console.error("Error validando:", e));
+    }
+};
 
+// --- FUNCIONES VISUALES (Modal y Búsqueda) ---
 function abrirModal(e) {
-    if(e) e.preventDefault(); // Evita que la página salte hacia arriba
-    const modal = document.getElementById('modalPago');
-    modal.classList.add('active'); // Activa la animación CSS
-    document.getElementById('documentoInput').focus(); // Pone el cursor listo para escribir
+    if(e) e.preventDefault();
+    document.getElementById('modalPago').classList.add('active');
+    document.getElementById('documentoInput').focus();
 }
 
 function cerrarModal() {
-    const modal = document.getElementById('modalPago');
-    modal.classList.remove('active');
-    
-    // Limpiar resultados al cerrar para que se vea limpio la próxima vez
+    document.getElementById('modalPago').classList.remove('active');
     setTimeout(() => {
         document.getElementById('resultadoFacturas').innerHTML = '';
         document.getElementById('documentoInput').value = '';
-    }, 300); // Espera a que termine la animación de cierre
+    }, 300);
 }
 
-// Cerrar modal si hacen clic afuera de la caja blanca
 document.getElementById('modalPago').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalPago')) {
-        cerrarModal();
-    }
+    if (e.target === document.getElementById('modalPago')) cerrarModal();
 });
-
-// --- LÓGICA DE PAGOS (Igual que antes) ---
 
 async function buscarFactura() {
     const documento = document.getElementById('documentoInput').value;
     const resultadoDiv = document.getElementById('resultadoFacturas');
     
     if(!documento) return;
-
-    resultadoDiv.innerHTML = '<p style="color:#666"><i class="fa-solid fa-spinner fa-spin"></i> Buscando...</p>';
+    resultadoDiv.innerHTML = '<p style="color:#666">Buscando...</p>';
 
     try {
-        const response = await fetch(`${API_URL}/api/facturas/${documento}`);
-        
+        const response = await fetch(`/api/facturas/${documento}`);
         if (!response.ok) {
-            resultadoDiv.innerHTML = `
-                <div style="padding:15px; background:#ffebeb; border-radius:8px; color:#d32f2f;">
-                    <i class="fa-solid fa-circle-exclamation"></i> No tienes facturas pendientes.
-                </div>`;
+            resultadoDiv.innerHTML = `<div style="padding:15px; color:#d32f2f;">No tienes facturas pendientes.</div>`;
             return;
         }
 
         const facturas = await response.json();
-        
         resultadoDiv.innerHTML = '';
         facturas.forEach(f => {
-            // Pasamos los datos directamente a la función pagar
             resultadoDiv.innerHTML += `
                 <div class="factura-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0; font-size:1.1rem;">${f.mes_servicio}</h3>
-                        <span style="background:#e3f2fd; color:#0d47a1; padding:3px 8px; border-radius:10px; font-size:0.8rem;">Internet</span>
-                    </div>
-                    <p style="margin:5px 0; color:#555;">${f.nombre_completo}</p>
-                    <h2 style="margin:10px 0; color:var(--color-secondary);">$${parseInt(f.monto).toLocaleString()}</h2>
-                    <p style="font-size:0.8rem; color:#888;">Vence: ${f.fecha_vencimiento.split('T')[0]}</p>
-                    
-                    <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pagar" style="width:100%; margin-top:10px; cursor:pointer;">
+                    <h3>${f.mes_servicio}</h3>
+                    <p>${f.nombre_completo}</p>
+                    <h2>$${parseInt(f.monto).toLocaleString()}</h2>
+                    <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pagar" style="width:100%; margin-top:10px;">
                         Pagar con ePayco
                     </button>
                 </div>
             `;
         });
-
     } catch (error) {
         console.error(error);
         resultadoDiv.innerHTML = '<p>Error de conexión.</p>';
     }
 }
 
+// --- FUNCIÓN DE PAGO INFALIBLE (Formulario Invisible) ---
 function iniciarPagoEpayco(idFactura, monto, descripcion) {
-    // 1. LIMPIEZA DEL MONTO (CRUCIAL)
-    // Convertimos a texto y borramos puntos y comas para dejar solo números
-    const montoLimpio = String(monto).replace(/[.,]/g, ''); 
-    
-    // Verificamos en consola qué valor final se va a enviar
-    console.log("Monto original:", monto, " | Monto a enviar:", montoLimpio);
+    // 1. Limpieza matemática
+    let montoNumber = parseFloat(monto);
+    let montoLimpio = Math.round(montoNumber);
 
-    const data = {
-        name: "Servicio Internet - " + descripcion,
-        description: "Pago factura #" + idFactura,
-        invoice: idFactura + "-" + Date.now(),
-        currency: "cop",
-        amount: parseInt(montoLimpio), // Ahora sí es un número seguro (ej: 82000)
-        tax_base: "0",
-        tax: "0",
-        country: "co",
-        lang: "es",
-        external: true, // Redirección
+    if(isNaN(montoLimpio) || montoLimpio < 500) {
+        alert("El monto no es válido.");
+        return;
+    }
 
-        // --- DATOS DEL CLIENTE ---
-        // Enviamos el correo en AMBOS campos para evitar problemas
-        email: "cliente_pruebas@gmail.com", 
-        email_billing: "cliente_pruebas@gmail.com", 
+    console.log("Enviando a ePayco...", montoLimpio);
+
+    // 2. Parámetros del Checkout Estándar
+    const params = {
+        p_cust_id_cliente: '504560',
         
-        name_billing: "Cliente Pruebas",
-        address_billing: "Caicedonia, Valle",
-        type_doc_billing: "cc",
-        mobilephone_billing: "3000000000",
-        number_doc_billing: "123456789",
+        // --- CORRECCIÓN IMPORTANTE AQUÍ ---
+        // Para el formulario HTML se debe usar la PUBLIC_KEY (b459...)
+        p_key: 'b459d654998c6fea2f9c6b9e1cacb960', 
+        // ----------------------------------
         
-        confirmation: `${window.location.origin}/api/confirmacion`, 
-        response: `${window.location.origin}/index.html`,
-        methodsDisable: []
+        p_id_invoice: idFactura + "-" + Date.now(),
+        p_description: "Interfronteras - " + descripcion,
+        p_currency_code: 'COP',
+        p_amount: montoLimpio,
+        p_tax: 0,
+        p_amount_base: montoLimpio, // Base = Total (Impuesto 0)
+        
+        // Si sigue fallando, prueba cambiar esto a 'TRUE'
+        p_test_request: 'FALSE', 
+        
+        p_url_response: `${CLOUDFLARE_URL}/index.html`,
+        p_url_confirmation: `${CLOUDFLARE_URL}/api/confirmacion`,
+        p_email: 'cliente_prueba@gmail.com',
+        p_billing_name: 'Cliente Pruebas',
+        p_billing_document: '123456789'
     };
 
-    console.log("Enviando datos a ePayco:", data); // Mira esto en la consola (F12)
-    handler.open(data);
+    // 3. Crear formulario y enviarlo
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://secure.checkout.epayco.co/checkout.php';
+    form.style.display = 'none';
+
+    for (const key in params) {
+        if (params.hasOwnProperty(key)) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = key;
+            hiddenField.value = params[key];
+            form.appendChild(hiddenField);
+        }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
-window.addEventListener('scroll', function() {
+// --- VISUAL (Navbar y Scroll) ---
+window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
-    // Si bajamos más de 50px, agregamos la clase "scrolled"
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
+    window.scrollY > 50 ? navbar.classList.add('scrolled') : navbar.classList.remove('scrolled');
 });
-
-function toggleMenu() {
-    const navLinks = document.getElementById('navLinks');
-    navLinks.classList.toggle('active');
-}
-
-// --- MODAL TÉRMINOS Y CONDICIONES ---
-
-function abrirTerminos(e) {
-    if(e) e.preventDefault();
-    const modal = document.getElementById('modalTerminos');
-    modal.classList.add('active');
-}
-
-function cerrarTerminos() {
-    const modal = document.getElementById('modalTerminos');
-    modal.classList.remove('active');
-}
-
-// Cerrar si hacen clic afuera
+function toggleMenu() { document.getElementById('navLinks').classList.toggle('active'); }
+function abrirTerminos(e) { if(e) e.preventDefault(); document.getElementById('modalTerminos').classList.add('active'); }
+function cerrarTerminos() { document.getElementById('modalTerminos').classList.remove('active'); }
 document.getElementById('modalTerminos').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalTerminos')) {
-        cerrarTerminos();
-    }
+    if (e.target === document.getElementById('modalTerminos')) cerrarTerminos();
 });
