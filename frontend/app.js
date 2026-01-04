@@ -81,34 +81,45 @@ async function buscarFactura() {
     }
 }
 
-// NUEVA FUNCIÓN DE PAGO CON EPAYCO
 function iniciarPagoEpayco(idFactura, monto, descripcion) {
+    // 1. LIMPIEZA DEL MONTO (CRUCIAL)
+    // Convertimos a texto y borramos puntos y comas para dejar solo números
+    const montoLimpio = String(monto).replace(/[.,]/g, ''); 
+    
+    // Verificamos en consola qué valor final se va a enviar
+    console.log("Monto original:", monto, " | Monto a enviar:", montoLimpio);
+
     const data = {
         name: "Servicio Internet - " + descripcion,
         description: "Pago factura #" + idFactura,
-        invoice: idFactura + "-" + Date.now(), 
+        invoice: idFactura + "-" + Date.now(),
         currency: "cop",
-        amount: parseInt(monto), 
+        amount: parseInt(montoLimpio), // Ahora sí es un número seguro (ej: 82000)
         tax_base: "0",
         tax: "0",
         country: "co",
         lang: "es",
-        external: "true", // Redirección obligatoria para túneles
+        external: true, // Redirección
+
+        // --- DATOS DEL CLIENTE ---
+        // Enviamos el correo en AMBOS campos para evitar problemas
+        email: "cliente_pruebas@gmail.com", 
+        email_billing: "cliente_pruebas@gmail.com", 
         
         name_billing: "Cliente Pruebas",
-        address_billing: "Calle 123",
+        address_billing: "Caicedonia, Valle",
         type_doc_billing: "cc",
         mobilephone_billing: "3000000000",
         number_doc_billing: "123456789",
-
+        
         confirmation: `${window.location.origin}/api/confirmacion`, 
         response: `${window.location.origin}/index.html`,
         methodsDisable: []
     };
 
+    console.log("Enviando datos a ePayco:", data); // Mira esto en la consola (F12)
     handler.open(data);
 }
-
 
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
