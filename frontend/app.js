@@ -70,6 +70,8 @@ function iniciarPagoEpayco(idFactura, monto, descripcion) {
         name: "Interfronteras - PRUEBA",
         description: "Pago Factura #" + idFactura,
         invoice: idFactura + "-" + Date.now(),
+        extra1: idFactura,
+        confirmation: `${CLOUDFLARE_URL}/api/confirmacion`,
         currency: "cop",
         amount: montoLimpio,
         tax_base: montoLimpio,
