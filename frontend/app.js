@@ -1,65 +1,50 @@
 const API_URL = ""; 
-// Tu URL del túnel (verifícala siempre, si se cierra cloudflare cambia)
 const CLOUDFLARE_URL = "https://was-spyware-ending-electoral.trycloudflare.com"; 
 
-// --- LÓGICA DE VALIDACIÓN (Al volver del pago) ---
+// --- CONFIGURACIÓN CON TUS LLAVES NUEVAS ---
+const handler = ePayco.checkout.configure({
+    key: '01816176c01e90993e14a2357b7ed01b', // TU PUBLIC_KEY
+    test: true // Modo pruebas activado
+});
+
+// --- LÓGICA DE RESPUESTA ---
 window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const refPayco = urlParams.get('ref_payco');
 
     if (refPayco) {
-        // Limpiamos la URL
         window.history.replaceState({}, document.title, "/");
-        
-        // Consultamos el estado
         fetch(`https://secure.epayco.co/validation/v1/reference/${refPayco}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    const estado = data.data.x_cod_response;
-                    if (estado == 1) alert("✅ ¡Pago Exitoso! Gracias.");
-                    else if (estado == 2 || estado == 4) alert("❌ El pago fue rechazado.");
-                    else if (estado == 3) alert("⏳ Pago pendiente.");
+                    const x = data.data.x_cod_response;
+                    if (x == 1) alert("✅ ¡Pago Exitoso! (Prueba)");
+                    else if (x == 2 || x == 4) alert("❌ Pago Rechazado");
+                    else if (x == 3) alert("⏳ Pago Pendiente");
                 }
             })
             .catch(e => console.error("Error validando:", e));
     }
 };
 
-// --- FUNCIONES VISUALES (Modal y Búsqueda) ---
-function abrirModal(e) {
-    if(e) e.preventDefault();
-    document.getElementById('modalPago').classList.add('active');
-    document.getElementById('documentoInput').focus();
-}
-
-function cerrarModal() {
-    document.getElementById('modalPago').classList.remove('active');
-    setTimeout(() => {
-        document.getElementById('resultadoFacturas').innerHTML = '';
-        document.getElementById('documentoInput').value = '';
-    }, 300);
-}
-
-document.getElementById('modalPago').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalPago')) cerrarModal();
-});
+// --- VISUAL ---
+function abrirModal(e) { if(e) e.preventDefault(); document.getElementById('modalPago').classList.add('active'); }
+function cerrarModal() { document.getElementById('modalPago').classList.remove('active'); }
+document.getElementById('modalPago').addEventListener('click', (e) => { if (e.target === document.getElementById('modalPago')) cerrarModal(); });
 
 async function buscarFactura() {
     const documento = document.getElementById('documentoInput').value;
     const resultadoDiv = document.getElementById('resultadoFacturas');
     
     if(!documento) return;
-    resultadoDiv.innerHTML = '<p style="color:#666">Buscando...</p>';
+    resultadoDiv.innerHTML = '<p>Buscando...</p>';
 
     try {
         const response = await fetch(`/api/facturas/${documento}`);
-        if (!response.ok) {
-            resultadoDiv.innerHTML = `<div style="padding:15px; color:#d32f2f;">No tienes facturas pendientes.</div>`;
-            return;
-        }
-
+        if (!response.ok) { resultadoDiv.innerHTML = '<div style="color:red">No hay facturas.</div>'; return; }
         const facturas = await response.json();
+        
         resultadoDiv.innerHTML = '';
         facturas.forEach(f => {
             resultadoDiv.innerHTML += `
@@ -70,82 +55,48 @@ async function buscarFactura() {
                     <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pagar" style="width:100%; margin-top:10px;">
                         Pagar con ePayco
                     </button>
-                </div>
-            `;
+                </div>`;
         });
-    } catch (error) {
-        console.error(error);
-        resultadoDiv.innerHTML = '<p>Error de conexión.</p>';
-    }
+    } catch (e) { resultadoDiv.innerHTML = '<p>Error de conexión.</p>'; }
 }
 
-// --- FUNCIÓN DE PAGO INFALIBLE (Formulario Invisible) ---
+// --- FUNCIÓN DE PAGO ---
 function iniciarPagoEpayco(idFactura, monto, descripcion) {
-    // 1. Limpieza matemática
-    let montoNumber = parseFloat(monto);
-    let montoLimpio = Math.round(montoNumber);
+    let montoLimpio = Math.round(parseFloat(monto));
 
-    if(isNaN(montoLimpio) || montoLimpio < 500) {
-        alert("El monto no es válido.");
-        return;
-    }
+    if(isNaN(montoLimpio) || montoLimpio < 500) { alert("Monto inválido"); return; }
 
-    console.log("Enviando a ePayco...", montoLimpio);
+    const data = {
+        name: "Interfronteras - PRUEBA",
+        description: "Pago Factura #" + idFactura,
+        invoice: idFactura + "-" + Date.now(),
+        currency: "cop",
+        amount: montoLimpio,
+        tax_base: montoLimpio,
+        tax: "0",
+        country: "co",
+        lang: "es",
+        external: true, // Redirección segura
 
-    // 2. Parámetros del Checkout Estándar
-    const params = {
-        p_cust_id_cliente: '504560',
-        
-        // --- CORRECCIÓN IMPORTANTE AQUÍ ---
-        // Para el formulario HTML se debe usar la PUBLIC_KEY (b459...)
-        p_key: 'b459d654998c6fea2f9c6b9e1cacb960', 
-        // ----------------------------------
-        
-        p_id_invoice: idFactura + "-" + Date.now(),
-        p_description: "Interfronteras - " + descripcion,
-        p_currency_code: 'COP',
-        p_amount: montoLimpio,
-        p_tax: 0,
-        p_amount_base: montoLimpio, // Base = Total (Impuesto 0)
-        
-        // Si sigue fallando, prueba cambiar esto a 'TRUE'
-        p_test_request: 'FALSE', 
-        
-        p_url_response: `${CLOUDFLARE_URL}/index.html`,
-        p_url_confirmation: `${CLOUDFLARE_URL}/api/confirmacion`,
-        p_email: 'cliente_prueba@gmail.com',
-        p_billing_name: 'Cliente Pruebas',
-        p_billing_document: '123456789'
+        // URLS (Cloudflare)
+        confirmation: `${CLOUDFLARE_URL}/api/confirmacion`, 
+        response: `${CLOUDFLARE_URL}/index.html`,
+
+        // DATOS DEL CLIENTE (Obligatorios)
+        email: "tu_correo_personal@gmail.com", // Pon tu correo real aquí para recibir el comprobante
+        name_billing: "Alejandro Test",
+        address_billing: "Calle Prueba 123",
+        type_doc_billing: "cc",
+        number_doc_billing: "1094936622", // Tu cédula o una de prueba
+        mobilephone_billing: "3001234567"
     };
 
-    // 3. Crear formulario y enviarlo
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://secure.checkout.epayco.co/checkout.php';
-    form.style.display = 'none';
-
-    for (const key in params) {
-        if (params.hasOwnProperty(key)) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = key;
-            hiddenField.value = params[key];
-            form.appendChild(hiddenField);
-        }
-    }
-
-    document.body.appendChild(form);
-    form.submit();
+    handler.open(data);
 }
 
-// --- VISUAL (Navbar y Scroll) ---
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    window.scrollY > 50 ? navbar.classList.add('scrolled') : navbar.classList.remove('scrolled');
-});
+// Otros
+window.addEventListener('scroll', () => { document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50); });
 function toggleMenu() { document.getElementById('navLinks').classList.toggle('active'); }
 function abrirTerminos(e) { if(e) e.preventDefault(); document.getElementById('modalTerminos').classList.add('active'); }
 function cerrarTerminos() { document.getElementById('modalTerminos').classList.remove('active'); }
-document.getElementById('modalTerminos').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalTerminos')) cerrarTerminos();
-});
+document.getElementById('modalTerminos').addEventListener('click', (e) => { if (e.target === document.getElementById('modalTerminos')) cerrarTerminos(); });
