@@ -87,18 +87,23 @@ function cambiarPagina(dir) {
 
 // --- FORMULARIO (CREAR / EDITAR) ---
 function abrirFormulario() {
-    document.getElementById('cliente-form-card').classList.remove('hidden');
+    // CAMBIO: Ahora usamos display 'flex' sobre el modal-formulario
+    const modal = document.getElementById('modal-formulario');
+    modal.style.display = 'flex';
+    
     document.getElementById('form-title').innerText = "Registrar Nuevo Cliente";
     document.getElementById('editId').value = ""; // Limpiar ID (modo crear)
     
-    // Limpiar inputs
-    document.querySelectorAll('#cliente-form-card input').forEach(i => i.value = '');
-    // Restaurar selects por defecto si es necesario
+    // Limpiar inputs (Seleccionamos inputs dentro del modal)
+    document.querySelectorAll('#modal-formulario input').forEach(i => i.value = '');
+    
+    // Restaurar selects por defecto
     document.getElementById('plan').value = '150 MEGAS';
 }
 
 function cerrarFormulario() {
-    document.getElementById('cliente-form-card').classList.add('hidden');
+    // CAMBIO: Ocultamos el modal
+    document.getElementById('modal-formulario').style.display = 'none';
 }
 
 function formatearFechaInput(fechaISO) {
@@ -111,11 +116,14 @@ function cargarDatosEdicion(index) {
     const c = listaClientesCache[index];
     if(!c) return;
 
-    document.getElementById('cliente-form-card').classList.remove('hidden');
+    // CAMBIO: Abrimos el modal y cambiamos el título
+    const modal = document.getElementById('modal-formulario');
+    modal.style.display = 'flex';
     document.getElementById('form-title').innerText = "Editar Cliente: " + c.nombre_completo;
+    
     document.getElementById('editId').value = c.id; // Modo edición
 
-    // Llenar campos
+    // Llenar campos (Igual que antes)
     document.getElementById('doc').value = c.documento_id;
     document.getElementById('nombre').value = c.nombre_completo;
     document.getElementById('celular').value = c.celular || '';
@@ -129,9 +137,6 @@ function cargarDatosEdicion(index) {
     document.getElementById('amarra').value = c.amarra || '';
     document.getElementById('fecha_registro').value = formatearFechaInput(c.fecha_registro);
     document.getElementById('fecha_corte').value = formatearFechaInput(c.fecha_corte);
-
-    // Scroll hacia el formulario para que se vea
-    document.getElementById('cliente-form-card').scrollIntoView({behavior: 'smooth'});
 }
 
 async function guardarCliente() {
@@ -254,9 +259,14 @@ function cerrarModalDetalle() {
 
 // Cerrar si hacen clic fuera de la caja blanca
 window.onclick = function(event) {
-    const modal = document.getElementById('modal-detalle');
-    if (event.target == modal) {
+    const modalDetalle = document.getElementById('modal-detalle');
+    const modalForm = document.getElementById('modal-formulario');
+    
+    if (event.target == modalDetalle) {
         cerrarModalDetalle();
+    }
+    if (event.target == modalForm) {
+        cerrarFormulario();
     }
 }
 

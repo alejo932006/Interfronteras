@@ -46,3 +46,142 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
 .bg-pendiente { background: #fadbd8; color: #943126; }
 
 .hidden { display: none !important; }
+
+/* --- ESTILOS DEL MODAL PRO --- */
+
+/* Fondo oscuro con desenfoque (Efecto Glass) */
+.modal-overlay {
+    display: none; /* Se maneja con JS */
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(44, 62, 80, 0.6); /* Color oscuro semi-transparente */
+    backdrop-filter: blur(8px); /* Desenfoque del fondo (Efecto Pro) */
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-out; /* Animación de entrada suave */
+}
+
+/* Caja del contenido */
+.modal-content {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px; /* Bordes más redondeados */
+    width: 650px;
+    max-width: 90%;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2); /* Sombra flotante */
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Efecto "pop" elástico */
+}
+
+/* Encabezado del Modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Botón de cerrar (X) */
+.close-btn {
+    font-size: 24px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+.close-btn:hover {
+    background: #f0f0f0;
+    color: #e74c3c;
+}
+
+/* Grid del formulario mejorado */
+.form-grid-pro {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 Columnas */
+    gap: 20px;
+}
+
+/* Inputs más bonitos */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.input-group input, 
+.input-group select {
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.input-group input:focus, 
+.input-group select:focus {
+    background: #fff;
+    border-color: var(--accent); /* Se pone verde al escribir */
+    box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+}
+
+/* Botones del pie de página */
+.modal-footer {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Responsivo para móviles */
+@media (max-width: 700px) {
+    .form-grid-pro {
+        grid-template-columns: 1fr; /* 1 columna en celular */
+        gap: 12px;
+    }
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+}

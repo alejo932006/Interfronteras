@@ -66,41 +66,91 @@
                 </div>
             </div>
 
-            <div id="cliente-form-card" class="card hidden" style="border-left: 5px solid var(--accent);">
-                <h3 id="form-title">Registrar Nuevo Cliente</h3>
-                <input type="hidden" id="editId"> <div class="form-grid">
-                    <input type="text" id="doc" placeholder="Cédula / NIT (Obligatorio)">
-                    <input type="text" id="nombre" placeholder="Nombre Completo (Obligatorio)">
-                    <input type="text" id="celular" placeholder="Celular">
-                    <input type="text" id="barrio" placeholder="Barrio">
-                    <input type="text" id="direccion" placeholder="Dirección">
-                    <input type="email" id="email" placeholder="Email">
+            <div id="modal-formulario" class="modal-overlay">
+                <div class="modal-content">
                     
-                    <select id="plan">
-                        <option value="50 MEGAS">50 MEGAS</option>
-                        <option value="150 MEGAS" selected>150 MEGAS</option>
-                        <option value="300 MEGAS">300 MEGAS</option>
-                    </select>
-                    
-                    <input type="number" id="valor" placeholder="Valor Mensual (Ej: 42000)">
-                    <input type="text" id="pppoe" placeholder="Usuario PPPoE">
-                    <input type="text" id="nodo" placeholder="Nodo">
-                    <input type="text" id="amarra" placeholder="Amarra">
-
-                    <div style="display:flex; flex-direction:column;">
-                        <label style="font-size:12px; color:#666;">Fecha Registro:</label>
-                        <input type="date" id="fecha_registro">
+                    <div class="modal-header">
+                        <h2 id="form-title">Registrar Nuevo Cliente</h2>
+                        <span class="close-btn" onclick="cerrarFormulario()">&times;</span>
                     </div>
+            
+                    <input type="hidden" id="editId">
                     
-                    <div style="display:flex; flex-direction:column;">
-                        <label style="font-size:12px; color:#666;">Fecha Corte:</label>
-                        <input type="date" id="fecha_corte">
+                    <div class="form-grid-pro">
+                        <div class="input-group">
+                            <label>Documento ID</label>
+                            <input type="text" id="doc" placeholder="Ej: 1094936622">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="nombre" placeholder="Nombre del cliente">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Celular</label>
+                            <input type="text" id="celular" placeholder="Ej: 300 123 4567">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Email (Opcional)</label>
+                            <input type="email" id="email" placeholder="cliente@correo.com">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Dirección</label>
+                            <input type="text" id="direccion" placeholder="Dirección de instalación">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Barrio</label>
+                            <input type="text" id="barrio" placeholder="Barrio">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Plan de Internet</label>
+                            <select id="plan">
+                                <option value="50 MEGAS">50 MEGAS</option>
+                                <option value="150 MEGAS" selected>150 MEGAS</option>
+                                <option value="300 MEGAS">300 MEGAS</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Valor Mensual</label>
+                            <input type="number" id="valor" placeholder="Ej: 50000">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Usuario PPPoE</label>
+                            <input type="text" id="pppoe" placeholder="Usuario Mikrotik">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Nodo</label>
+                            <input type="text" id="nodo" placeholder="Nombre del Nodo">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Amarra / Caja</label>
+                            <input type="text" id="amarra" placeholder="Detalle técnico">
+                        </div>
+            
+                        <div class="input-group">
+                            <label>Fecha Registro</label>
+                            <input type="date" id="fecha_registro">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Fecha Corte</label>
+                            <input type="date" id="fecha_corte">
+                        </div>
                     </div>
-
-                </div>
-                <div style="margin-top:15px; text-align:right;">
-                    <button class="btn btn-red" onclick="cerrarFormulario()">Cancelar</button>
-                    <button class="btn btn-green" onclick="guardarCliente()">Guardar Cambios</button>
+            
+                    <div class="modal-footer">
+                        <button class="btn btn-red" onclick="cerrarFormulario()">Cancelar</button>
+                        <button class="btn btn-green" onclick="guardarCliente()">Guardar Datos</button>
+                    </div>
                 </div>
             </div>
 
