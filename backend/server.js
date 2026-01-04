@@ -8,13 +8,11 @@ const cron = require('node-cron'); // Importación movida arriba para orden
 const app = express();
 const PORT = 3000;
 
-// Middleware
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
-
-// Servir archivos estáticos
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
 // Base de Datos
 const pool = new Pool({
@@ -25,11 +23,19 @@ const pool = new Pool({
   port: 5432,
 });
 
-// --- RUTAS ---
+    app.get('/', (req, res) => {
+        // Ajustado a la nueva estructura: ../frontend/index/index.html
+        res.sendFile(path.join(__dirname, '../frontend/index/index.html'));
+        });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
+    app.get('/admin', (req, res) => { // Cambié '/admin.html' a '/admin' por estética, pero funciona igual
+        // CORREGIDO: Faltaba una barra '/' después de los dos puntos
+        res.sendFile(path.join(__dirname, '../frontend/admin/admin.html'));
+        });
+    // Mantenemos compatibilidad por si alguien escribe admin.html
+    app.get('/admin.html', (req, res) => {
+        res.sendFile(path.join(__dirname, '../frontend/admin/admin.html'));
+        });
 
 // --- 1. LOGIN ADMINISTRADOR ---
 app.post('/api/login', async (req, res) => {

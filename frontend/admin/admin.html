@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Interfronteras</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/frontend/admin/style.css">
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>Interfronteras</h2>
+            <p>Admin Access</p>
+            <input type="text" id="loginUser" placeholder="Usuario">
+            <input type="password" id="loginPass" placeholder="Contraseña">
+            <button onclick="login()">Ingresar</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Panel Admin</h2>
+        <div class="menu-item active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Inicio</div>
+        <div class="menu-item" onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</div>
+        <div class="menu-item" onclick="showTab('facturas')"><i class="fas fa-file-invoice-dollar"></i> Facturas</div>
+        <div style="margin-top: auto; border-top: 1px solid #444;">
+            <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <section id="tab-dashboard" class="tab-section active">
+            <h1>Bienvenido</h1>
+            <div class="form-grid">
+                <div class="card">
+                    <h3>Clientes Totales</h3>
+                    <h1 id="stat-total">0</h1>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-clientes" class="tab-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <h1 style="margin:0; color:var(--primary);">Gestión de Clientes</h1>
+                
+                <div style="display:flex; gap: 10px;">
+                    
+                    <button class="btn" 
+                            style="background-color: #8e44ad; color: white; box-shadow: 0 4px 6px rgba(142, 68, 173, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
+                            onclick="generarFacturasMasivas(this)"
+                            onmouseover="this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-magic"></i> Facturar Día
+                    </button>
+            
+                    <button class="btn btn-green" 
+                            style="box-shadow: 0 4px 6px rgba(46, 204, 113, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
+                            onclick="abrirFormulario()"
+                            onmouseover="this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-user-plus"></i> Nuevo Cliente
+                    </button>
+            
+                </div>
+            </div>
+
+            <div id="cliente-form-card" class="card hidden" style="border-left: 5px solid var(--accent);">
+                <h3 id="form-title">Registrar Nuevo Cliente</h3>
+                <input type="hidden" id="editId"> <div class="form-grid">
+                    <input type="text" id="doc" placeholder="Cédula / NIT (Obligatorio)">
+                    <input type="text" id="nombre" placeholder="Nombre Completo (Obligatorio)">
+                    <input type="text" id="celular" placeholder="Celular">
+                    <input type="text" id="barrio" placeholder="Barrio">
+                    <input type="text" id="direccion" placeholder="Dirección">
+                    <input type="email" id="email" placeholder="Email">
+                    
+                    <select id="plan">
+                        <option value="50 MEGAS">50 MEGAS</option>
+                        <option value="150 MEGAS" selected>150 MEGAS</option>
+                        <option value="300 MEGAS">300 MEGAS</option>
+                    </select>
+                    
+                    <input type="number" id="valor" placeholder="Valor Mensual (Ej: 42000)">
+                    <input type="text" id="pppoe" placeholder="Usuario PPPoE">
+                    <input type="text" id="nodo" placeholder="Nodo">
+                    <input type="text" id="amarra" placeholder="Amarra">
+
+                    <div style="display:flex; flex-direction:column;">
+                        <label style="font-size:12px; color:#666;">Fecha Registro:</label>
+                        <input type="date" id="fecha_registro">
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column;">
+                        <label style="font-size:12px; color:#666;">Fecha Corte:</label>
+                        <input type="date" id="fecha_corte">
+                    </div>
+
+                </div>
+                <div style="margin-top:15px; text-align:right;">
+                    <button class="btn btn-red" onclick="cerrarFormulario()">Cancelar</button>
+                    <button class="btn btn-green" onclick="guardarCliente()">Guardar Cambios</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"><input type="checkbox" id="checkAll" onclick="toggleSelectAll()"></th>
+                            <th style="width: 50px;">ID</th>
+                            <th>Documento</th>
+                            <th>Nombre / Celular</th>
+                            <th>Ubicación</th>
+                            <th>Plan / PPPoE</th>
+                            <th>Estado</th>
+                            <th style="width:100px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-clientes-body"></tbody>
+                </table>
+            </div>
+
+            <div style="padding:10px; background:white; display:flex; justify-content:space-between; align-items:center;">
+                <span id="page-info">Pag 1</span>
+                <div>
+                    <button class="btn btn-gray" onclick="cambiarPagina(-1)">Anterior</button>
+                    <button class="btn btn-primary" style="background:var(--primary)" onclick="cambiarPagina(1)">Siguiente</button>
+                </div>
+            </div>
+        </section>
+        <section id="tab-facturas" class="tab-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
+                <h1>Historial de Facturación</h1>
+                
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">ESTADO</span>
+                        <select id="filtroEstadoFactura" onchange="cargarFacturas(1)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
+                            <option value="">Todos</option>
+                            <option value="pendiente">Pendientes</option>
+                            <option value="pagado">Pagados</option>
+                        </select>
+                    </div>
+            
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">FECHA PAGO</span>
+                        <input type="date" id="filtroFechaFactura" onchange="cargarFacturas(1)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+            
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">REFERENCIA</span>
+                        <input type="text" id="filtroRefFactura" placeholder="Ej: 123..." onkeyup="detectarEnterFactura(event)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 120px;">
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-blue" onclick="cargarFacturas(1)" title="Buscar"><i class="fas fa-search"></i></button>
+                        <button class="btn btn-gray" onclick="limpiarFiltroFacturas()" title="Limpiar Filtros">❌</button>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Mes Servicio</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha Pago</th>
+                            <th>Ref. Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-facturas-body">
+                        </tbody>
+                </table>
+            </div>
+        
+            <div style="padding:10px; background:white; display:flex; justify-content:space-between; align-items:center;">
+                <span id="page-info-facturas">Pag 1</span>
+                <div>
+                    <button class="btn btn-gray" onclick="cambiarPaginaFacturas(-1)">Anterior</button>
+                    <button class="btn btn-primary" style="background:var(--primary)" onclick="cambiarPaginaFacturas(1)">Siguiente</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modal-detalle" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+    
+        <div class="modal-content" style="background: white; padding: 25px; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative;">
+            
+            <span onclick="cerrarModalDetalle()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #888;">&times;</span>
+            
+            <h2 style="margin-top:0; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px;">Detalles del Cliente</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 15px;">
+                <div><strong>👤 Nombre:</strong> <span id="view-nombre">Cargando...</span></div>
+                <div><strong>🆔 Documento:</strong> <span id="view-doc"></span></div>
+                <div><strong>📞 Celular:</strong> <span id="view-celular"></span></div>
+                <div><strong>📍 Dirección:</strong> <span id="view-direccion"></span> (<span id="view-barrio"></span>)</div>
+                <div><strong>📧 Email:</strong> <span id="view-email"></span></div>
+                <hr style="border: 0; border-top: 1px solid #eee; width: 100%;">
+                <div><strong>📡 Plan:</strong> <span id="view-plan"></span></div>
+                <div><strong>🔌 PPPoE / Nodo:</strong> <span id="view-pppoe"></span> / <span id="view-nodo"></span></div>
+                
+                <div style="background-color: #e8f8f5; padding: 10px; border-radius: 5px; color: #0e6655; margin-top: 5px; text-align: center; border: 1px solid #a2d9ce;">
+                    <strong>💰 VALOR MENSUAL A PAGAR</strong><br>
+                    <span id="view-pago" style="font-size: 1.4em; font-weight: bold;">$0.00</span>
+                </div>
+                
+                <div style="text-align: right; margin-top: 5px;">
+                    <strong>Estado:</strong> <span id="view-estado" class="badge"></span>
+                </div>
+            </div>
+    
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-gray" onclick="cerrarModalDetalle()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulk-actions" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2c3e50; padding: 15px 25px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); color: white; align-items: center; gap: 15px; z-index: 1000;">
+        <span style="font-weight: bold;">Selected: <span id="selected-count" style="color: #1abc9c;">0</span></span>
+        
+        <div style="border-left: 1px solid #555; height: 20px; margin: 0 5px;"></div>
+        
+        <span>Fecha Corte:</span>
+        <input type="date" id="bulk-date" style="padding: 5px; border-radius: 4px; border: none; width: 130px;">
+        
+        <button class="btn" style="background: #1abc9c; color: white; border-radius: 20px;" onclick="aplicarCorteMasivo()">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+        
+        <button class="btn btn-red" style="border-radius: 50%; width: 30px; height: 30px; padding: 0; display:flex; align-items:center; justify-content:center;" onclick="cancelarSeleccion()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <script src="/frontend/admin/admin.js"></script>
+</body>
+</html>

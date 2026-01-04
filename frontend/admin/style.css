@@ -1,0 +1,48 @@
+:root { --primary: #2c3e50; --secondary: #34495e; --accent: #1abc9c; --bg: #f4f6f9; }
+body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+/* LOGIN */
+#login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+.login-box { background: white; padding: 40px; border-radius: 8px; width: 300px; text-align: center; }
+.login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; }
+.login-box button { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; cursor: pointer; }
+
+/* LAYOUT */
+.sidebar { width: 250px; background: var(--primary); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar h2 { text-align: center; padding: 20px 0; border-bottom: 1px solid var(--secondary); margin: 0; }
+.menu-item { padding: 15px 20px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+.menu-item:hover, .menu-item.active { background: var(--secondary); border-left: 4px solid var(--accent); }
+
+.main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+
+.tab-section { display: none; height: 100%; }
+.tab-section.active { display: flex; flex-direction: column; }
+
+/* COMPONENTES */
+.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+
+/* Tabla */
+.table-container { flex-grow: 1; overflow: auto; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: #eee; text-align: left; padding: 12px; color: #555; position: sticky; top: 0; z-index: 10; }
+td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+tr:hover { background: #fafafa; }
+
+/* Formulario & Buscador */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box; }
+.search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+.search-bar input { max-width: 300px; border: 1px solid #bbb; }
+
+/* Botones */
+.btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; display: inline-flex; align-items: center; gap: 5px; }
+.btn-green { background: var(--accent); }
+.btn-blue { background: #3498db; }
+.btn-red { background: #e74c3c; }
+.btn-gray { background: #95a5a6; }
+
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.bg-pagado { background: #d5f5e3; color: #196f3d; }
+.bg-pendiente { background: #fadbd8; color: #943126; }
+
+.hidden { display: none !important; }
