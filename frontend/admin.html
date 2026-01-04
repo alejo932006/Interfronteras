@@ -72,6 +72,7 @@
         <h2>Panel Admin</h2>
         <div class="menu-item active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Inicio</div>
         <div class="menu-item" onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</div>
+        <div class="menu-item" onclick="showTab('facturas')"><i class="fas fa-file-invoice-dollar"></i> Facturas</div>
         <div style="margin-top: auto; border-top: 1px solid #444;">
             <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</div>
         </div>
@@ -90,20 +91,28 @@
         </section>
 
         <section id="tab-clientes" class="tab-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h1>Gestión de Clientes</h1>
-                <button class="btn" style="background-color: #8e44ad; color: white; margin-right: 10px;" onclick="generarFacturasMasivas(this)">
-                    <i class="fas fa-magic"></i> Facturar Día
-                </button>
-                <button class="btn btn-green" onclick="abrirFormulario()">
-                    <i class="fas fa-plus"></i> Nuevo Cliente
-                </button>
-            </div>
-
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar por Cédula o Nombre..." onkeyup="detectarEnter(event)">
-                <button class="btn btn-blue" onclick="buscar()">Buscar</button>
-                <button class="btn btn-gray" onclick="limpiarBusqueda()" title="Ver todos">❌</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <h1 style="margin:0; color:var(--primary);">Gestión de Clientes</h1>
+                
+                <div style="display:flex; gap: 10px;">
+                    
+                    <button class="btn" 
+                            style="background-color: #8e44ad; color: white; box-shadow: 0 4px 6px rgba(142, 68, 173, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
+                            onclick="generarFacturasMasivas(this)"
+                            onmouseover="this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-magic"></i> Facturar Día
+                    </button>
+            
+                    <button class="btn btn-green" 
+                            style="box-shadow: 0 4px 6px rgba(46, 204, 113, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
+                            onclick="abrirFormulario()"
+                            onmouseover="this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-user-plus"></i> Nuevo Cliente
+                    </button>
+            
+                </div>
             </div>
 
             <div id="cliente-form-card" class="card hidden" style="border-left: 5px solid var(--accent);">
@@ -148,6 +157,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 30px;"><input type="checkbox" id="checkAll" onclick="toggleSelectAll()"></th>
                             <th style="width: 50px;">ID</th>
                             <th>Documento</th>
                             <th>Nombre / Celular</th>
@@ -166,6 +176,64 @@
                 <div>
                     <button class="btn btn-gray" onclick="cambiarPagina(-1)">Anterior</button>
                     <button class="btn btn-primary" style="background:var(--primary)" onclick="cambiarPagina(1)">Siguiente</button>
+                </div>
+            </div>
+        </section>
+        <section id="tab-facturas" class="tab-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
+                <h1>Historial de Facturación</h1>
+                
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">ESTADO</span>
+                        <select id="filtroEstadoFactura" onchange="cargarFacturas(1)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 110px;">
+                            <option value="">Todos</option>
+                            <option value="pendiente">Pendientes</option>
+                            <option value="pagado">Pagados</option>
+                        </select>
+                    </div>
+            
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">FECHA PAGO</span>
+                        <input type="date" id="filtroFechaFactura" onchange="cargarFacturas(1)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+            
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size: 10px; color: #666; font-weight:bold;">REFERENCIA</span>
+                        <input type="text" id="filtroRefFactura" placeholder="Ej: 123..." onkeyup="detectarEnterFactura(event)" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 120px;">
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-blue" onclick="cargarFacturas(1)" title="Buscar"><i class="fas fa-search"></i></button>
+                        <button class="btn btn-gray" onclick="limpiarFiltroFacturas()" title="Limpiar Filtros">❌</button>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Mes Servicio</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha Pago</th>
+                            <th>Ref. Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-facturas-body">
+                        </tbody>
+                </table>
+            </div>
+        
+            <div style="padding:10px; background:white; display:flex; justify-content:space-between; align-items:center;">
+                <span id="page-info-facturas">Pag 1</span>
+                <div>
+                    <button class="btn btn-gray" onclick="cambiarPaginaFacturas(-1)">Anterior</button>
+                    <button class="btn btn-primary" style="background:var(--primary)" onclick="cambiarPaginaFacturas(1)">Siguiente</button>
                 </div>
             </div>
         </section>
@@ -225,6 +293,7 @@
 
                     tbody.innerHTML += `
                     <tr>
+                        <td><input type="checkbox" class="client-check" value="${c.id}" onchange="actualizarContador()"></td>
                         <td><span style="color:#888; font-weight:bold;">${c.id}</span></td>
                         <td><b>${c.documento_id}</b></td>
                         <td>${c.nombre_completo}<br><small>📱 ${c.celular||'--'}</small></td>
@@ -371,6 +440,10 @@
                 document.querySelectorAll('.menu-item')[1].classList.add('active');
                 cargarClientes();
             }
+            if(id === 'facturas') {
+                document.querySelectorAll('.menu-item')[2].classList.add('active');
+                cargarFacturas(); // Carga la lista al entrar
+            }
         }
 
         // --- FUNCIONES DEL MODAL DE DETALLE ---
@@ -462,6 +535,199 @@
                 }
             }
         }
+
+        // --- LÓGICA DEL MÓDULO FACTURAS (ACTUALIZADO CON ESTADO) ---
+        let currentFacturaPage = 1;
+
+        async function cargarFacturas(page = 1) {
+            currentFacturaPage = page;
+            const tbody = document.getElementById('tabla-facturas-body');
+            
+            // Leer valores de los 3 filtros
+            const fechaFiltro = document.getElementById('filtroFechaFactura').value;
+            const refFiltro = document.getElementById('filtroRefFactura').value.trim();
+            const estadoFiltro = document.getElementById('filtroEstadoFactura').value;
+            
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Cargando historial...</td></tr>';
+
+            try {
+                // Construir URL con parámetros
+                let url = `${API}/admin/facturas?page=${page}&limit=20`;
+                if (fechaFiltro) url += `&fecha=${fechaFiltro}`;
+                if (refFiltro) url += `&referencia=${encodeURIComponent(refFiltro)}`;
+                if (estadoFiltro) url += `&estado=${estadoFiltro}`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                tbody.innerHTML = '';
+                document.getElementById('page-info-facturas').innerText = `Página ${data.pagination.page} de ${data.pagination.totalPages}`;
+
+                if(data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">No se encontraron facturas con esos filtros.</td></tr>';
+                    return;
+                }
+
+                data.data.forEach(f => {
+                    const monto = parseFloat(f.monto).toLocaleString('es-CO', {style:'currency', currency:'COP', minimumFractionDigits:0});
+                    
+                    let estadoColor = '#eee';
+                    let estadoTexto = '#333';
+                    if(f.estado === 'pagado') { estadoColor = '#d5f5e3'; estadoTexto = '#196f3d'; } 
+                    else if(f.estado === 'pendiente') { estadoColor = '#fadbd8'; estadoTexto = '#943126'; }
+
+                    const badge = `<span style="background:${estadoColor}; color:${estadoTexto}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:12px; text-transform:uppercase;">${f.estado}</span>`;
+                    
+                    let fechaPagoStr = '--';
+                    if(f.fecha_pago) {
+                        fechaPagoStr = new Date(f.fecha_pago).toLocaleDateString() + ' ' + new Date(f.fecha_pago).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }
+
+                    // Resaltar referencia si se buscó
+                    let refTexto = f.referencia_pago || '--';
+                    if(refFiltro && f.referencia_pago) {
+                        refTexto = `<span style="background:yellow;">${f.referencia_pago}</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${f.id}</b></td>
+                            <td>${f.nombre_completo}<br><small style="color:#777;">${f.documento_id}</small></td>
+                            <td>${f.mes_servicio}</td>
+                            <td style="font-weight:bold;">${monto}</td>
+                            <td>${badge}</td>
+                            <td><small>${fechaPagoStr}</small></td>
+                            <td><small style="font-family:monospace; color:#555;">${refTexto}</small></td>
+                        </tr>
+                    `;
+                });
+
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Error de conexión.</td></tr>';
+            }
+        }
+
+        function limpiarFiltroFacturas() {
+            document.getElementById('filtroFechaFactura').value = '';
+            document.getElementById('filtroRefFactura').value = '';
+            document.getElementById('filtroEstadoFactura').value = ''; // Resetear select
+            cargarFacturas(1);
+        }
+
+        function detectarEnterFactura(e) {
+            if(e.key === 'Enter') cargarFacturas(1);
+        }
+
+        function cambiarPaginaFacturas(dir) {
+            if(currentFacturaPage + dir > 0) cargarFacturas(currentFacturaPage + dir);
+        }
+        function limpiarFiltroFacturas() {
+            document.getElementById('filtroFechaFactura').value = '';
+            document.getElementById('filtroRefFactura').value = '';
+            cargarFacturas(1);
+        }
+
+        function detectarEnterFactura(e) {
+            if(e.key === 'Enter') cargarFacturas(1);
+        }
+
+        function cambiarPaginaFacturas(dir) {
+            if(currentFacturaPage + dir > 0) cargarFacturas(currentFacturaPage + dir);
+        }
+
+        function toggleSelectAll() {
+            const masterCheck = document.getElementById('checkAll');
+            const checkboxes = document.querySelectorAll('.client-check');
+            
+            checkboxes.forEach(cb => cb.checked = masterCheck.checked);
+            actualizarContador();
+        }
+        
+        // 2. Contar cuántos hay seleccionados y mostrar la barra
+        function actualizarContador() {
+            const checkboxes = document.querySelectorAll('.client-check:checked');
+            const count = checkboxes.length;
+            const bar = document.getElementById('bulk-actions');
+            
+            document.getElementById('selected-count').innerText = count;
+            
+            if (count > 0) {
+                bar.style.display = 'flex';
+            } else {
+                bar.style.display = 'none';
+                document.getElementById('checkAll').checked = false;
+            }
+        }
+        
+        // 3. Cancelar todo
+        function cancelarSeleccion() {
+            const checkboxes = document.querySelectorAll('.client-check');
+            checkboxes.forEach(cb => cb.checked = false);
+            actualizarContador();
+        }
+        
+        // 4. ENVIAR CAMBIOS AL SERVIDOR
+        async function aplicarCorteMasivo() {
+            const checkboxes = document.querySelectorAll('.client-check:checked');
+            const fecha = document.getElementById('bulk-date').value;
+            
+            if (checkboxes.length === 0) return alert("Selecciona al menos un cliente.");
+            if (!fecha) return alert("Selecciona una fecha de corte.");
+        
+            // Recolectar IDs
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        
+            if(!confirm(`¿Seguro que deseas asignar la fecha de corte ${fecha} a ${ids.length} clientes?`)) return;
+        
+            try {
+                const res = await fetch(`${API}/clientes/masivo/fecha-corte`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids, fecha_corte: fecha })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    cancelarSeleccion();
+                    cargarClientes(currentPage); // Recargar tabla
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error de conexión");
+            }
+        }
+
+        setInterval(() => {
+            // 1. Verificar si hay algún modal abierto (Para no molestar si estás editando)
+            const modalDetalle = document.getElementById('modal-detalle');
+            const formCliente = document.getElementById('cliente-form-card');
+            
+            // Si hay ventanas abiertas, NO actualizamos para no interrumpir tu trabajo
+            if (modalDetalle.style.display === 'flex' || !formCliente.classList.contains('hidden')) {
+                return; 
+            }
+        
+            // 2. Detectar qué pestaña estás viendo
+            const tabClientes = document.getElementById('tab-clientes');
+            const tabFacturas = document.getElementById('tab-facturas');
+        
+            // 3. Actualizar la tabla correspondiente
+            if (tabClientes.classList.contains('active')) {
+                // Guardamos la búsqueda actual para no perderla
+                console.log("🔄 Auto-actualizando tabla Clientes...");
+                cargarClientes(currentPage); 
+            } 
+            else if (tabFacturas && tabFacturas.classList.contains('active')) {
+                console.log("🔄 Auto-actualizando tabla Facturas...");
+                cargarFacturas(currentFacturaPage);
+            }
+        
+        }, 10000); // 30000 milisegundos = 30 Segundos
     </script>
     <div id="modal-detalle" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
     
@@ -495,6 +761,23 @@
                 <button class="btn btn-gray" onclick="cerrarModalDetalle()">Cerrar</button>
             </div>
         </div>
+    </div>
+
+    <div id="bulk-actions" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2c3e50; padding: 15px 25px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); color: white; align-items: center; gap: 15px; z-index: 1000;">
+        <span style="font-weight: bold;">Selected: <span id="selected-count" style="color: #1abc9c;">0</span></span>
+        
+        <div style="border-left: 1px solid #555; height: 20px; margin: 0 5px;"></div>
+        
+        <span>Fecha Corte:</span>
+        <input type="date" id="bulk-date" style="padding: 5px; border-radius: 4px; border: none; width: 130px;">
+        
+        <button class="btn" style="background: #1abc9c; color: white; border-radius: 20px;" onclick="aplicarCorteMasivo()">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+        
+        <button class="btn btn-red" style="border-radius: 50%; width: 30px; height: 30px; padding: 0; display:flex; align-items:center; justify-content:center;" onclick="cancelarSeleccion()">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 </body>
 </html>

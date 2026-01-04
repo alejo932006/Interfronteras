@@ -255,7 +255,8 @@ app.get('/api/facturas/:documento', async (req, res) => {
 });
 
 // --- 6. CRON JOB: GENERACIÓN AUTOMÁTICA DE FACTURAS ---
-cron.schedule('0 0 * * *', async () => {
+// Cambia '0 0 * * *' por '* * * * *' (5 asteriscos)
+cron.schedule('* * * * *', async () => {
   console.log("🕛 Revisando cortes de facturación...");
 
   try {
@@ -272,7 +273,7 @@ cron.schedule('0 0 * * *', async () => {
       const usuariosACobrar = await pool.query(`
           SELECT id, valor_mensual 
           FROM usuarios 
-          WHERE estado_servicio = 'ACTIVO'
+          WHERE TRIM(UPPER(estado_servicio)) = 'ACTIVO'
           AND EXTRACT(DAY FROM fecha_corte) = $1
       `, [diaCorteHoy]);
 
@@ -348,13 +349,11 @@ app.post('/api/confirmacion', async (req, res) => {
 });
 
 // --- RUTA: GENERACIÓN MASIVA MANUAL (Botón del Admin) ---
-// --- RUTA: GENERACIÓN MASIVA MANUAL (Botón del Admin) ---
 app.post('/api/facturas/generar-masivo', async (req, res) => {
   console.log("⚡ Ejecutando facturación masiva manual...");
 
   try {
-      // 1. CALCULAMOS EL DÍA EXACTO EN COLOMBIA USANDO JAVASCRIPT
-      // Esto evita problemas de hora del servidor o base de datos
+      // 1. CALCULAMOS EL DÍA EXACTO
       const hoy = new Date();
       const diaCorteHoy = parseInt(hoy.toLocaleDateString('es-CO', { 
           day: 'numeric', 
@@ -363,22 +362,25 @@ app.post('/api/facturas/generar-masivo', async (req, res) => {
 
       console.log(`📅 Buscando clientes con fecha de corte día: ${diaCorteHoy}`);
 
-      // 2. Buscamos usuarios ACTIVOS cuyo día de corte sea el número que calculamos
+      // 2. BUSCAMOS CLIENTES (CORRECCIÓN: TRIM e ILIKE para ignorar espacios)
       const query = `
           SELECT id, valor_mensual, nombre_completo 
           FROM usuarios 
-          WHERE estado_servicio = 'ACTIVO'
+          WHERE TRIM(estado_servicio) = 'ACTIVO' 
           AND EXTRACT(DAY FROM fecha_corte) = $1
       `;
       
       const usuariosACobrar = await pool.query(query, [diaCorteHoy]);
 
       if (usuariosACobrar.rows.length === 0) {
-          return res.json({ success: true, count: 0, message: `No hay clientes con corte el día ${diaCorteHoy}.` });
+          // Mensaje de depuración útil
+          console.log("No se encontraron clientes. Verifica que el día de corte coincida y el estado sea 'ACTIVO'.");
+          return res.json({ success: true, count: 0, message: `No hay clientes activos con corte el día ${diaCorteHoy}.` });
       }
 
-      // 3. Preparamos datos auxiliares para la factura
+      // 3. Preparamos datos
       const mesActual = hoy.toLocaleDateString('es-ES', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
+      // Aseguramos formato "Enero de 2026"
       const mesServicioCapitalizado = mesActual.charAt(0).toUpperCase() + mesActual.slice(1);
       
       const fechaVence = new Date(hoy);
@@ -388,7 +390,6 @@ app.post('/api/facturas/generar-masivo', async (req, res) => {
 
       // 4. Generamos las facturas
       for (const u of usuariosACobrar.rows) {
-          // Verificar duplicados
           const checkDuplicado = await pool.query(`
               SELECT id FROM facturas 
               WHERE usuario_id = $1 AND mes_servicio = $2
@@ -402,6 +403,7 @@ app.post('/api/facturas/generar-masivo', async (req, res) => {
               `, [u.id, u.valor_mensual, mesServicioCapitalizado, fechaVence]);
               
               facturasGeneradas++;
+              console.log(`Factura creada para: ${u.nombre_completo}`);
           }
       }
 
@@ -413,7 +415,103 @@ app.post('/api/facturas/generar-masivo', async (req, res) => {
 
   } catch (error) {
       console.error("Error manual:", error);
-      res.status(500).json({ success: false, error: "Error generando facturas." });
+      res.status(500).json({ success: false, error: "Error generando facturas: " + error.message });
+  }
+});
+
+// --- 8. OBTENER HISTORIAL DE FACTURAS (MULTIFILTRO: FECHA, REFERENCIA Y ESTADO) ---
+app.get('/api/admin/facturas', async (req, res) => {
+  try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+      
+      // Filtros recibidos
+      const fecha = req.query.fecha || '';
+      const referencia = req.query.referencia || '';
+      const estado = req.query.estado || ''; // Nuevo filtro
+
+      // Construcción dinámica del WHERE
+      let conditions = [];
+      let params = [];
+      let paramIndex = 1;
+
+      if (fecha) {
+          conditions.push(`DATE(f.fecha_pago) = $${paramIndex}`);
+          params.push(fecha);
+          paramIndex++;
+      }
+
+      if (referencia) {
+          conditions.push(`f.referencia_pago::text ILIKE $${paramIndex}`);
+          params.push(`%${referencia}%`);
+          paramIndex++;
+      }
+
+      if (estado && estado !== 'todos') {
+          // Filtramos por estado exacto ('pendiente' o 'pagado')
+          conditions.push(`f.estado = $${paramIndex}`);
+          params.push(estado);
+          paramIndex++;
+      }
+
+      const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+
+      // 1. Contar total
+      const countRes = await pool.query(`SELECT COUNT(*) FROM facturas f ${whereClause}`, params);
+      const total = parseInt(countRes.rows[0].count);
+      const totalPages = Math.ceil(total / limit);
+
+      // 2. Consulta principal
+      const query = `
+          SELECT 
+              f.id, f.monto, f.mes_servicio, f.estado, f.fecha_vencimiento, f.fecha_pago, f.referencia_pago,
+              u.nombre_completo, u.documento_id
+          FROM facturas f
+          JOIN usuarios u ON f.usuario_id = u.id
+          ${whereClause}
+          ORDER BY f.id DESC
+          LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+      
+      params.push(limit, offset);
+
+      const result = await pool.query(query, params);
+
+      res.json({
+          data: result.rows,
+          pagination: { total, page, totalPages }
+      });
+
+  } catch (err) {
+      console.error(err);
+      res.status(500).send('Error obteniendo facturas');
+  }
+});
+
+// --- 9. ACTUALIZACIÓN MASIVA DE FECHA DE CORTE ---
+app.put('/api/clientes/masivo/fecha-corte', async (req, res) => {
+  const { ids, fecha_corte } = req.body; // ids es un array: [1, 2, 5, ...]
+
+  if (!ids || ids.length === 0 || !fecha_corte) {
+      return res.status(400).json({ success: false, error: "Faltan datos." });
+  }
+
+  try {
+      // Usamos ANY($1) para actualizar todos los IDs que vengan en la lista
+      const query = `
+          UPDATE usuarios 
+          SET fecha_corte = $1 
+          WHERE id = ANY($2::int[])
+      `;
+      
+      await pool.query(query, [fecha_corte, ids]);
+      
+      res.json({ success: true, message: `Se actualizaron ${ids.length} clientes correctamente.` });
+
+  } catch (error) {
+      console.error("Error masivo:", error);
+      res.status(500).json({ success: false, error: "Error en actualización masiva." });
   }
 });
 
