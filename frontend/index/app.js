@@ -1,5 +1,5 @@
 const API_URL = ""; 
-const CLOUDFLARE_URL = "https://task-dozens-content-influence.trycloudflare.com"; 
+const CLOUDFLARE_URL = "https://webcast-made-row-time.trycloudflare.com"; 
 
 // --- CONFIGURACIÓN CON TUS LLAVES NUEVAS ---
 const handler = ePayco.checkout.configure({
