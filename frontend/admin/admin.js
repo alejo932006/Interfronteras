@@ -341,11 +341,30 @@ async function cargarFacturas(page = 1) {
             
             let estadoColor = '#eee';
             let estadoTexto = '#333';
-            if(f.estado === 'pagado') { estadoColor = '#d5f5e3'; estadoTexto = '#196f3d'; } 
-            else if(f.estado === 'pendiente') { estadoColor = '#fadbd8'; estadoTexto = '#943126'; }
+            let textoBadge = f.estado; // Por defecto dice "pendiente" o "pagado"
 
-            const badge = `<span style="background:${estadoColor}; color:${estadoTexto}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:12px; text-transform:uppercase;">${f.estado}</span>`;
-            
+            if(f.estado === 'pagado') { 
+                estadoColor = '#d5f5e3'; 
+                estadoTexto = '#196f3d'; 
+            } 
+            else if(f.estado === 'pendiente') {
+                // Verificamos si tiene días de mora calculados desde el backend
+                if (f.dias_mora > 0) {
+                    estadoColor = '#fadbd8'; // Rojo claro de fondo
+                    estadoTexto = '#c0392b'; // Rojo oscuro de texto
+                    // Agregamos ícono de alerta y los días
+                    textoBadge = `EN MORA (+${f.dias_mora} días)`;
+                    
+                    // Opcional: Para el futuro corte con Mikrotik
+                    // Si dias_mora > 5, el color podría ser más intenso
+                } else {
+                    estadoColor = '#fef9e7'; // Amarillo suave
+                    estadoTexto = '#b7950b'; // Amarillo oscuro
+                    textoBadge = 'PENDIENTE';
+                }
+            }
+
+            const badge = `<span style="background:${estadoColor}; color:${estadoTexto}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; text-transform:uppercase; display:inline-block; min-width:80px; text-align:center;">${textoBadge}</span>`;            
             let fechaPagoStr = '--';
             if(f.fecha_pago) {
                 fechaPagoStr = new Date(f.fecha_pago).toLocaleDateString() + ' ' + new Date(f.fecha_pago).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});

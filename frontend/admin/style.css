@@ -185,3 +185,16 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
         width: 95%;
     }
 }
+
+/* Estados de Factura */
+.badge-mora {
+    background-color: #fadbd8;
+    color: #c0392b;
+    animation: pulse 2s infinite; /* Efecto visual suave para llamar la atencion */
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(192, 57, 43, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+}

@@ -470,15 +470,20 @@ app.get('/api/admin/facturas', async (req, res) => {
 
       // 2. Consulta principal
       const query = `
-          SELECT 
-              f.id, f.monto, f.mes_servicio, f.estado, f.fecha_vencimiento, f.fecha_pago, f.referencia_pago,
-              u.nombre_completo, u.documento_id
-          FROM facturas f
-          JOIN usuarios u ON f.usuario_id = u.id
-          ${whereClause}
-          ORDER BY f.id DESC
-          LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
+      SELECT 
+          f.id, f.monto, f.mes_servicio, f.estado, f.fecha_vencimiento, f.fecha_pago, f.referencia_pago,
+          u.nombre_completo, u.documento_id,
+          CASE 
+            WHEN f.estado = 'pendiente' AND NOW() > f.fecha_vencimiento THEN 
+                EXTRACT(DAY FROM NOW() - f.fecha_vencimiento)::int
+            ELSE 0 
+          END as dias_mora
+      FROM facturas f
+      JOIN usuarios u ON f.usuario_id = u.id
+      ${whereClause}
+      ORDER BY f.id DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `;
       
       params.push(limit, offset);
 
