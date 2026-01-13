@@ -32,40 +32,102 @@
     <div class="main-content">
         
         <section id="tab-dashboard" class="tab-section active">
-            <h1>Bienvenido</h1>
+            <h1 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">Panel de Control</h1>
+            
+            <div class="form-grid" style="margin-top: 20px;">
+                
+                <div class="card hover-card" onclick="filtrarClientesDesdeDashboard('todos')" style="border-left: 5px solid #3498db; cursor: pointer;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px;">TOTAL CLIENTES</h3>
+                            <h1 id="stat-total" style="color:#2c3e50; font-size: 2.5rem; margin:0;">0</h1>
+                        </div>
+                        <i class="fas fa-users" style="font-size: 40px; color: #3498db; opacity: 0.2;"></i>
+                    </div>
+                </div>
+        
+                <div class="card hover-card" onclick="filtrarClientesDesdeDashboard('aldia')" style="border-left: 5px solid #2ecc71; cursor: pointer;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px;">AL DÍA</h3>
+                            <h1 id="stat-aldia" style="color:#27ae60; font-size: 2.5rem; margin:0;">0</h1>
+                        </div>
+                        <i class="fas fa-check-circle" style="font-size: 40px; color: #2ecc71; opacity: 0.2;"></i>
+                    </div>
+                </div>
+        
+                <div class="card hover-card" onclick="filtrarClientesDesdeDashboard('mora')" style="border-left: 5px solid #e74c3c; cursor: pointer;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px;">EN MORA</h3>
+                            <h1 id="stat-mora" style="color:#c0392b; font-size: 2.5rem; margin:0;">0</h1>
+                        </div>
+                        <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #e74c3c; opacity: 0.2;"></i>
+                    </div>
+                </div>
+        
+                <div class="card hover-card" onclick="filtrarClientesDesdeDashboard('sindatos')" style="border-left: 5px solid #95a5a6; cursor: pointer;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px;">SIN DATOS</h3>
+                            <h1 id="stat-sindatos" style="color:#7f8c8d; font-size: 2.5rem; margin:0;">0</h1>
+                        </div>
+                        <i class="fas fa-folder-open" style="font-size: 40px; color: #95a5a6; opacity: 0.2;"></i>
+                    </div>
+                </div>
+        
+            </div>
+        
+            <h2 style="margin-top: 30px; font-size: 1.1rem; color: #555; display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-chart-line"></i> Finanzas: <span id="stat-mes" style="font-weight:bold; color:var(--primary)">...</span>
+            </h2>
             <div class="form-grid">
-                <div class="card">
-                    <h3>Clientes Totales</h3>
-                    <h1 id="stat-total">0</h1>
+                 <div class="card" style="border-left: 5px solid #1abc9c; background: linear-gradient(to right, #fff, #f0fdfa);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px; text-transform: uppercase;">Recaudado (Mes)</h3>
+                            <h1 id="stat-recaudo" style="color:#16a085; font-size: 2rem; margin:0;">$0</h1>
+                        </div>
+                        <i class="fas fa-hand-holding-usd" style="font-size: 35px; color: #1abc9c;"></i>
+                    </div>
+                </div>
+        
+                <div class="card" style="border-left: 5px solid #f39c12; background: linear-gradient(to right, #fff, #fcf8e0);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="color:#7f8c8d; font-size: 0.85rem; margin-bottom:5px; text-transform: uppercase;">Cartera Pendiente Total</h3>
+                            <h1 id="stat-pendiente" style="color:#d35400; font-size: 2rem; margin:0;">$0</h1>
+                        </div>
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 35px; color: #f39c12;"></i>
+                    </div>
                 </div>
             </div>
         </section>
-
+        
         <section id="tab-clientes" class="tab-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                <h1 style="margin:0; color:var(--primary);">Gestión de Clientes</h1>
-                
-                <div style="display:flex; gap: 10px;">
-                    
-                    <button class="btn" 
-                            style="background-color: #8e44ad; color: white; box-shadow: 0 4px 6px rgba(142, 68, 173, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
-                            onclick="generarFacturasMasivas(this)"
-                            onmouseover="this.style.transform='translateY(-2px)'" 
-                            onmouseout="this.style.transform='translateY(0)'">
-                        <i class="fas fa-magic"></i> Facturar Día
+    
+            <div class="page-header">
+                <div class="header-title">
+                    <div class="icon-box">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h1 id="titulo-clientes">Gestión de Clientes</h1>
+                        <p class="subtitle-admin">Administra tu base de usuarios y facturación</p>
+                    </div>
+                </div>
+        
+                <div class="header-actions">
+                    <button class="btn-pro btn-purple" onclick="generarFacturasMasivas(this)">
+                        <i class="fas fa-magic"></i> <span>Facturar Día</span>
                     </button>
             
-                    <button class="btn btn-green" 
-                            style="box-shadow: 0 4px 6px rgba(46, 204, 113, 0.3); transition: transform 0.2s; border-radius: 6px; padding: 10px 15px;" 
-                            onclick="abrirFormulario()"
-                            onmouseover="this.style.transform='translateY(-2px)'" 
-                            onmouseout="this.style.transform='translateY(0)'">
-                        <i class="fas fa-user-plus"></i> Nuevo Cliente
+                    <button class="btn-pro btn-main" onclick="abrirFormulario()">
+                        <i class="fas fa-user-plus"></i> <span>Nuevo Cliente</span>
                     </button>
-            
                 </div>
             </div>
-
+            
             <div id="modal-formulario" class="modal-overlay">
                 <div class="modal-content">
                     

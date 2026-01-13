@@ -660,6 +660,7 @@
     /* Efecto de brillo en el icono */
     background: linear-gradient(to right, var(--color-secondary), var(--color-primary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 10px rgba(37, 211, 102, 0.4));
 }
@@ -1209,18 +1210,135 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Ajuste móvil */
-@media (max-width: 768px) {
-    .lightbox-close {
-        top: 10px;
-        right: 20px;
-        font-size: 30px;
-    }
-    #lightboxCaption {
-        font-size: 1rem;
-    }
+/* =========================================
+   MODAL DE PAGO (REDISEÑO PRO)
+   ========================================= */
+
+/* 1. Fondo del Modal (Efecto Cristal Oscuro) */
+.modal-overlay {
+    background: rgba(15, 23, 42, 0.85); /* Azul muy oscuro casi negro */
+    backdrop-filter: blur(12px); /* Desenfoque fuerte estilo iOS */
+    transition: all 0.4s ease;
+}
+
+/* 2. Caja Principal */
+.modal-box {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Decoración de fondo (Círculo de color sutil) */
+.modal-box::before {
+    content: '';
+    position: absolute;
+    top: -50px; left: -50px;
+    width: 150px; height: 150px;
+    background: var(--color-secondary);
+    opacity: 0.1;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.modal-header h2 {
+    color: var(--color-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* =========================================
+   ANIMACIÓN "SUPER WOW" (ESTILO ALETOSO 3D)
+   ========================================= */
+
+/* Contenedor para dar profundidad 3D */
+#resultado-busqueda {
+    perspective: 1000px; /* Define la profundidad de la escena 3D */
+    padding-top: 20px;
+}
+
+/* 4. TARJETA DE FACTURA (REDISEÑO 3D) */
+.factura-card {
+    background: white;
+    border: none;
+    border-radius: 20px; /* Bordes más redondeados */
+    padding: 0;
+    margin: 25px auto; /* Un poco más de margen */
+    position: relative;
+    /* Sombra mucho más pronunciada y difusa para dar sensación de flotar */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 95%; /* Para que no pegue en los bordes en móviles */
+    
+    /* ESTADO INICIAL DE LA ANIMACIÓN */
+    opacity: 0;
+    /* Inicia abajo, pequeño y rotado hacia atrás en 3D */
+    transform: translateY(100px) scale(0.8) rotateX(-30deg); 
+    transform-origin: bottom center;
+    
+    /* APLICACIÓN DE LA ANIMACIÓN */
+    /* Duración 0.8s, con una curva de aceleración que permite el rebote */
+    animation: elasticEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1.3) forwards;
+    
+    transition: transform 0.3s, box-shadow 0.3s; /* Para el hover */
+}
+
+/* Efecto Hover (Interactividad extra) */
+.factura-card:hover {
+    /* Al pasar el mouse, se levanta y se acerca un poco en 3D */
+    transform: translateY(-10px) scale(1.02) rotateX(2deg) !important; /* !important para sobreescribir el final de la animación */
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
 }
 
 
+/* --- LA ANIMACIÓN PRINCIPAL (EL REBOTE ELÁSTICO) --- */
+@keyframes elasticEntrance {
+    0% { opacity: 0; transform: translateY(150px) scale(0.7) rotateX(-45deg); }
+    60% { opacity: 1; transform: translateY(-20px) scale(1.05) rotateX(10deg); }
+    80% { transform: translateY(10px) scale(0.98) rotateX(-5deg); }
+    100% { transform: translateY(0) scale(1) rotateX(0deg); }
+}
 
 
+/* (Mantén los estilos internos de la tarjeta igual que antes) */
+.factura-header {
+    background: linear-gradient(135deg, #0061ff 0%, #60efff 100%); /* Azul eléctrico más vibrante */
+    /* ... resto igual ... */
+    color: white; padding: 15px; text-align: center;
+}
+.factura-header h3 { margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;}
+.factura-body { padding: 25px 20px; text-align: center;} /* Un poco más de padding interno */
+.factura-monto { font-size: 3rem; font-weight: 900; color: #1e293b; margin: 15px 0; letter-spacing: -1px;} /* Monto más grande e impactante */
+.factura-monto small { font-size: 1.2rem; color: #64748b; }
+
+/* Botón de Pagar con degradado */
+.btn-pay-action {
+    background: linear-gradient(to right, #00b09b, #96c93d); /* Degradado vibrante */
+    /* ... resto igual para que funcione el hover ... */
+    color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 176, 155, 0.3);
+}
+.btn-pay-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 176, 155, 0.5);
+}
+/* Medias lunas para efecto ticket real */
+.ticket-divider::before,
+.ticket-divider::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff; /* Debe coincidir con el fondo del modal si fuera transparente, aquí usamos blanco por simplicidad visual dentro de la caja */
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 999px #fff; /* Truco para "borrar" */
+}
+/* Mejor ajuste: las bolitas van al color del fondo externo si fuera posible, pero en modal blanco se usa gris claro */
+.ticket-divider::before { left: -10px; background: #fff; border:1px solid #f1f5f9;}
+.ticket-divider::after { right: -10px; background: #fff; border:1px solid #f1f5f9;}

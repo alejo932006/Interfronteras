@@ -52,73 +52,82 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- 2. OBTENER CLIENTES (Con Búsqueda y Paginación) ---
+// --- 2. OBTENER CLIENTES (Con Filtros de Estado) ---
 app.get('/api/clientes', async (req, res) => {
-  try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 50;
-      const search = req.query.search || '';
-      const offset = (page - 1) * limit;
-
-      let whereClause = '';
-      let params = [limit, offset];
-      
-      if (search) {
-          whereClause = `WHERE u.documento_id ILIKE $3 OR u.nombre_completo ILIKE $3`;
-          params.push(`%${search}%`);
-      }
-
-      // 1. Contar total
-      let totalClientes = 0;
-      if(search) {
-           const resCount = await pool.query(`SELECT COUNT(*) FROM usuarios u WHERE u.documento_id ILIKE $1 OR u.nombre_completo ILIKE $1`, [`%${search}%`]);
-           totalClientes = parseInt(resCount.rows[0].count);
-      } else {
-           const resCount = await pool.query('SELECT COUNT(*) FROM usuarios');
-           totalClientes = parseInt(resCount.rows[0].count);
-      }
-      
-      const totalPages = Math.ceil(totalClientes / limit);
-
-      // 2. Consulta principal (Calcula el estado mirando la tabla facturas)
-      const query = `
-      SELECT 
-          u.*,
-          f.estado as ultimo_estado,
-          f.mes_servicio as ultimo_mes,
-          f.fecha_pago as ultima_fecha_pago,
-          -- CAMBIO: Calculamos los días de mora de la última factura
-            CASE 
-                -- Comparamos la fecha actual (sin hora) con la fecha de vencimiento (sin hora)
-                WHEN f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento) THEN 
-                    (CURRENT_DATE - DATE(f.fecha_vencimiento))::int
-                ELSE 0 
-            END as dias_mora
-      FROM usuarios u
-      LEFT JOIN LATERAL (
-          SELECT estado, mes_servicio, fecha_pago, fecha_vencimiento -- Agregamos fecha_vencimiento aquí
-          FROM facturas
-          WHERE usuario_id = u.id
-          ORDER BY id DESC
-          LIMIT 1
-      ) f ON true
-      ${whereClause}
-      ORDER BY u.id DESC
-      LIMIT $1 OFFSET $2
-  `;
-      
-      const result = await pool.query(query, params);
-
-      res.json({
-          data: result.rows,
-          pagination: { total: totalClientes, page, totalPages }
-      });
-
-  } catch (err) {
-      console.error(err);
-      res.status(500).send('Error obteniendo clientes');
-  }
-});
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const search = req.query.search || '';
+        const estadoFilter = req.query.estado || 'todos'; // Nuevo filtro
+        const offset = (page - 1) * limit;
+  
+        // Construcción dinámica de condiciones
+        let conditions = [];
+        let params = [];
+        let paramIndex = 1;
+  
+        // Filtro de búsqueda (Texto)
+        if (search) {
+            conditions.push(`(u.documento_id ILIKE $${paramIndex} OR u.nombre_completo ILIKE $${paramIndex})`);
+            params.push(`%${search}%`);
+            paramIndex++;
+        }
+  
+        // Filtro de Estado (Desde el Dashboard)
+        if (estadoFilter === 'mora') {
+            conditions.push(`EXISTS (SELECT 1 FROM facturas f WHERE f.usuario_id = u.id AND f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento))`);
+        } else if (estadoFilter === 'sindatos') {
+            conditions.push(`NOT EXISTS (SELECT 1 FROM facturas f WHERE f.usuario_id = u.id)`);
+        } else if (estadoFilter === 'aldia') {
+            // Tiene facturas Y ninguna está vencida
+            conditions.push(`EXISTS (SELECT 1 FROM facturas f WHERE f.usuario_id = u.id) AND NOT EXISTS (SELECT 1 FROM facturas f WHERE f.usuario_id = u.id AND f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento))`);
+        }
+  
+        const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+  
+        // 1. Contar total con filtros
+        const resCount = await pool.query(`SELECT COUNT(*) FROM usuarios u ${whereClause}`, params);
+        const totalClientes = parseInt(resCount.rows[0].count);
+        const totalPages = Math.ceil(totalClientes / limit);
+  
+        // 2. Consulta principal
+        const query = `
+            SELECT 
+                u.*,
+                f.estado as ultimo_estado,
+                f.mes_servicio as ultimo_mes,
+                CASE 
+                    WHEN f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento) THEN 
+                        (CURRENT_DATE - DATE(f.fecha_vencimiento))::int
+                    ELSE 0 
+                END as dias_mora
+            FROM usuarios u
+            LEFT JOIN LATERAL (
+                SELECT estado, mes_servicio, fecha_vencimiento 
+                FROM facturas
+                WHERE usuario_id = u.id
+                ORDER BY id DESC
+                LIMIT 1
+            ) f ON true
+            ${whereClause}
+            ORDER BY u.id DESC
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+        
+        params.push(limit, offset);
+        
+        const result = await pool.query(query, params);
+  
+        res.json({
+            data: result.rows,
+            pagination: { total: totalClientes, page, totalPages }
+        });
+  
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error obteniendo clientes');
+    }
+  });
 
 // Obtener un solo cliente
 app.get('/api/clientes/:id', async (req, res) => {
@@ -513,6 +522,7 @@ app.get('/api/admin/facturas', async (req, res) => {
 });
 
 // --- 9. ACTUALIZACIÓN MASIVA DE FECHA DE CORTE ---
+//--- http://dominio.com/api/test-forzar-mora
 app.put('/api/clientes/masivo/fecha-corte', async (req, res) => {
   const { ids, fecha_corte } = req.body; // ids es un array: [1, 2, 5, ...]
 
@@ -562,6 +572,57 @@ app.get('/api/test-forzar-mora', async (req, res) => {
         res.status(500).send("Error: " + error.message);
     }
 });
+
+// --- 10. DASHBOARD STATS (ESTADÍSTICAS MEJORADAS) ---
+app.get('/api/dashboard/stats', async (req, res) => {
+    try {
+        // 1. Total Clientes Activos
+        const resTotal = await pool.query("SELECT COUNT(*) FROM usuarios WHERE estado_servicio != 'INACTIVO'");
+        const totalClientes = parseInt(resTotal.rows[0].count);
+  
+        // 2. Clientes en Mora (Tienen al menos una factura vencida pendiente)
+        const resMora = await pool.query(`
+            SELECT COUNT(DISTINCT usuario_id) 
+            FROM facturas 
+            WHERE estado = 'pendiente' AND CURRENT_DATE > DATE(fecha_vencimiento)
+        `);
+        const clientesMora = parseInt(resMora.rows[0].count);
+  
+        // 3. Clientes Sin Datos (Nunca se les ha generado factura)
+        // Buscamos usuarios activos que NO estén en la tabla de facturas
+        const resSinDatos = await pool.query(`
+            SELECT COUNT(*) FROM usuarios u
+            WHERE u.estado_servicio != 'INACTIVO'
+            AND NOT EXISTS (SELECT 1 FROM facturas f WHERE f.usuario_id = u.id)
+        `);
+        const clientesSinDatos = parseInt(resSinDatos.rows[0].count);
+  
+        // 4. Clientes Al Día (Resto)
+        const clientesAlDia = totalClientes - clientesMora - clientesSinDatos;
+  
+        // 5. Finanzas (Igual que antes)
+        const hoy = new Date();
+        const mesActual = hoy.toLocaleDateString('es-ES', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
+        const mesServicio = mesActual.charAt(0).toUpperCase() + mesActual.slice(1);
+  
+        const resRecaudado = await pool.query(`SELECT SUM(monto) FROM facturas WHERE estado = 'pagado' AND mes_servicio = $1`, [mesServicio]);
+        const resPendiente = await pool.query(`SELECT SUM(monto) FROM facturas WHERE estado = 'pendiente'`);
+  
+        res.json({
+            totalClientes,
+            clientesMora,
+            clientesAlDia,
+            clientesSinDatos, // <--- NUEVO CAMPO
+            recaudado: resRecaudado.rows[0].sum || 0,
+            pendiente: resPendiente.rows[0].sum || 0,
+            mesActual: mesServicio
+        });
+  
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error calculando estadísticas' });
+    }
+  });
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);

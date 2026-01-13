@@ -342,5 +342,15 @@
     opacity: 0.3; /* Menos intenso */
 }
 
+.lightbox-close {
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
 }
+#lightboxCaption {
+    font-size: 1rem;
+}
+
+}
+
 

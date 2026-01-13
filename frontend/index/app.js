@@ -46,19 +46,47 @@ async function buscarFactura() {
         const facturas = await response.json();
         
         resultadoDiv.innerHTML = '';
-        facturas.forEach(f => {
+        
+        // Agregamos un pequeño delay para la animación
+        facturas.forEach((f, index) => {
+            // Formatear dinero sin decimales
+            const montoFmt = parseInt(f.monto).toLocaleString('es-CO');
+            
             resultadoDiv.innerHTML += `
-                <div class="factura-card">
-                    <h3>${f.mes_servicio}</h3>
-                    <p>${f.nombre_completo}</p>
-                    <h2>$${parseInt(f.monto).toLocaleString()}</h2>
-                    <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pagar" style="width:100%; margin-top:10px;">
-                        Pagar con ePayco
-                    </button>
+                <div class="factura-card" style="animation-delay: ${index * 0.15}s">
+                    
+                    <div class="factura-header">
+                        <h3><i class="fa-solid fa-calendar-check"></i> ${f.mes_servicio}</h3>
+                    </div>
+
+                    <div class="factura-body">
+                        <p>Titular del Servicio</p>
+                        <strong style="font-size:1.1rem; color:#334155;">${f.nombre_completo}</strong>
+                        
+                        <div class="factura-monto">
+                            <small>$</small>${montoFmt}
+                        </div>
+
+                        <div class="ticket-divider"></div>
+
+                        <p style="margin-bottom:15px; font-size:0.85rem;">
+                            <i class="fa-solid fa-circle-info"></i> Factura N° ${f.id} • Pendiente
+                        </p>
+
+                        <button onclick="iniciarPagoEpayco('${f.id}', '${f.monto}', '${f.mes_servicio}')" class="btn-pay-action">
+                            <span>Pagar Ahora</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>`;
         });
     } catch (e) { resultadoDiv.innerHTML = '<p>Error de conexión.</p>'; }
 }
+
+document.getElementById('documentoInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        buscarFactura();
+    }
+});
 
 // --- FUNCIÓN DE PAGO ---
 function iniciarPagoEpayco(idFactura, monto, descripcion) {

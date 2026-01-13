@@ -1,4 +1,5 @@
 const API = '/api';
+let currentClientFilter = 'todos';
 let currentPage = 1;
 let currentSearch = '';
 let listaClientesCache = []; // Para llenar el form sin llamar a la API de nuevo
@@ -6,6 +7,7 @@ let listaClientesCache = []; // Para llenar el form sin llamar a la API de nuevo
 // --- AUTH ---
 if(localStorage.getItem('adminToken')) {
     document.getElementById('login-overlay').classList.add('hidden');
+    cargarDashboard();
     cargarClientes();
 }
 
@@ -25,8 +27,8 @@ async function cargarClientes(page = 1) {
     const tbody = document.getElementById('tabla-clientes-body');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Cargando...</td></tr>';
 
-    const url = `${API}/clientes?page=${page}&limit=50&search=${encodeURIComponent(currentSearch)}`;
-    
+    const url = `${API}/clientes?page=${page}&limit=50&search=${encodeURIComponent(currentSearch)}&estado=${currentClientFilter}`;
+        
     try {
         const res = await fetch(url);
         const data = await res.json();
@@ -222,6 +224,7 @@ function showTab(id) {
     if(id === 'dashboard') document.querySelectorAll('.menu-item')[0].classList.add('active');
     if(id === 'clientes') {
         document.querySelectorAll('.menu-item')[1].classList.add('active');
+        cargarDashboard();
         cargarClientes();
     }
     if(id === 'facturas') {
@@ -511,6 +514,50 @@ async function aplicarCorteMasivo() {
     }
 }
 
+async function cargarDashboard() {
+    try {
+        const res = await fetch(`${API}/dashboard/stats`);
+        const data = await res.json();
+        
+        // Asignar valores
+        if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = data.totalClientes;
+        if(document.getElementById('stat-aldia')) document.getElementById('stat-aldia').innerText = data.clientesAlDia;
+        if(document.getElementById('stat-mora')) document.getElementById('stat-mora').innerText = data.clientesMora;
+        
+        // NUEVO: Asignar Sin Datos
+        if(document.getElementById('stat-sindatos')) document.getElementById('stat-sindatos').innerText = data.clientesSinDatos;
+        
+        // Formatos de dinero...
+        const fmt = (val) => parseFloat(val || 0).toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits: 0});
+        if(document.getElementById('stat-recaudo')) document.getElementById('stat-recaudo').innerText = fmt(data.recaudado);
+        if(document.getElementById('stat-pendiente')) document.getElementById('stat-pendiente').innerText = fmt(data.pendiente);
+        if(document.getElementById('stat-mes')) document.getElementById('stat-mes').innerText = data.mesActual;
+
+    } catch(e) { console.error("Error cargando dashboard", e); }
+}
+
+function filtrarClientesDesdeDashboard(filtro) {
+    // 1. Establecer el filtro
+    currentClientFilter = filtro;
+    
+    // 2. Cambiar visualmente a la pestaña de clientes
+    showTab('clientes');
+    
+    // 3. Actualizar el título para saber qué estamos viendo
+    const titulos = {
+        'todos': 'Gestión de Clientes (Todos)',
+        'mora': 'Gestión de Clientes: ⚠️ EN MORA',
+        'aldia': 'Gestión de Clientes: ✅ AL DÍA',
+        'sindatos': 'Gestión de Clientes: 📂 SIN DATOS'
+    };
+    if(document.getElementById('titulo-clientes')) {
+        document.getElementById('titulo-clientes').innerText = titulos[filtro] || 'Gestión de Clientes';
+    }
+
+    // 4. Cargar los datos filtrados
+    cargarClientes(1);
+}
+
 setInterval(() => {
     // 1. Verificar si hay algún modal abierto (Para no interrumpir si estás editando)
     const modalDetalle = document.getElementById('modal-detalle');
@@ -540,3 +587,5 @@ setInterval(() => {
     }
 
 }, 30000); // 30 Segundos
+
+

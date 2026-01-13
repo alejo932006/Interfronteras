@@ -198,3 +198,122 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
     70% { box-shadow: 0 0 0 6px rgba(192, 57, 43, 0); }
     100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
 }
+
+.hover-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   ENCABEZADO DE PÁGINA (ADMIN PRO)
+   ========================================= */
+
+   .page-header {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.03); /* Sombra muy suave */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border: 1px solid rgba(0,0,0,0.05);
+    flex-wrap: wrap; /* Para que se adapte en móviles */
+    gap: 20px;
+}
+
+/* Grupo Título + Icono */
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Caja del icono (Cuadrado con color suave) */
+.icon-box {
+    width: 50px;
+    height: 50px;
+    background: rgba(44, 62, 80, 0.1); /* Color primario muy suave */
+    color: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Tipografía del Título */
+.header-title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--primary);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Subtítulo pequeño */
+.subtitle-admin {
+    margin: 2px 0 0 0;
+    font-size: 0.85rem;
+    color: #95a5a6;
+    font-weight: 500;
+}
+
+/* Grupo de Botones */
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* === BOTONES PRO === */
+.btn-pro {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-pro:hover {
+    transform: translateY(-2px); /* Se eleva un poco */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.btn-pro:active {
+    transform: translateY(0);
+}
+
+/* Colores de Botones */
+.btn-purple {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: white;
+}
+
+.btn-main {
+    background: linear-gradient(135deg, var(--accent), #16a085); /* Verde Turquesa */
+    color: white;
+}
+
+/* Ajuste Responsivo */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-actions {
+        width: 100%;
+    }
+    .btn-pro {
+        flex: 1; /* Botones ocupan todo el ancho en móvil */
+        justify-content: center;
+    }
+}
