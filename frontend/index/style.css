@@ -1297,12 +1297,22 @@
 }
 
 
-/* --- LA ANIMACIÓN PRINCIPAL (EL REBOTE ELÁSTICO) --- */
 @keyframes elasticEntrance {
-    0% { opacity: 0; transform: translateY(150px) scale(0.7) rotateX(-45deg); }
-    60% { opacity: 1; transform: translateY(-20px) scale(1.05) rotateX(10deg); }
-    80% { transform: translateY(10px) scale(0.98) rotateX(-5deg); }
-    100% { transform: translateY(0) scale(1) rotateX(0deg); }
+    0% {
+        opacity: 0;
+        transform: translateY(150px) scale(0.7) rotateX(-45deg);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.05) rotateX(10deg);
+    }
+    80% {
+        transform: translateY(10px) scale(0.98) rotateX(-5deg);
+    }
+    100% {
+        opacity: 1;  /* <--- ¡ESTA LÍNEA ES LA QUE FALTA! AGRÉGALA. */
+        transform: translateY(0) scale(1) rotateX(0deg);
+    }
 }
 
 
