@@ -44,10 +44,31 @@ async function cargarClientes(page = 1) {
         listaClientesCache.forEach((c, index) => {
             // Estado visual
             let badge = '<span class="badge" style="background:#eee; color:#666">Sin datos</span>';
+
             if(c.ultimo_mes) {
                 const pagado = c.ultimo_estado && c.ultimo_estado.toLowerCase() === 'pagado';
-                badge = `<span class="badge ${pagado ? 'bg-pagado':'bg-pendiente'}">${c.ultimo_estado}</span><br><small>${c.ultimo_mes}</small>`;
-            }
+                
+                // Lógica para definir el color y texto
+                let colorFondo = pagado ? '#d5f5e3' : '#fadbd8'; // Verde o Rojo suave
+                let colorTexto = pagado ? '#196f3d' : '#943126'; // Verde o Rojo fuerte
+                let textoEstado = c.ultimo_estado;
+                let claseAnimacion = '';
+            
+                // Si está pendiente y tiene mora, cambiamos a ALERTA ROJA
+                // (Asegúrate de que c.dias_mora venga del backend como número)
+                if (!pagado && c.dias_mora > 0) {
+                    textoEstado = `EN MORA (+${c.dias_mora})`;
+                    colorFondo = '#fadbd8'; // Rojo claro
+                    colorTexto = '#c0392b'; // Rojo intenso
+                    claseAnimacion = 'badge-mora';
+                    // Opcional: Si creaste la clase CSS, úsala aquí: class="badge badge-mora"
+                } else if (!pagado) {
+                    // Pendiente normal (sin mora)
+                    colorFondo = '#fef9e7'; // Amarillo
+                    colorTexto = '#b7950b';
+                }
+            
+                badge = `<span class="badge ${pagado ? 'bg-pagado':'bg-pendiente'} ${claseAnimacion}" style="background:${colorFondo}; color:${colorTexto}">${textoEstado}</span><br><small>${c.ultimo_mes}</small>`;            }
 
             tbody.innerHTML += `
             <tr>
@@ -342,6 +363,7 @@ async function cargarFacturas(page = 1) {
             let estadoColor = '#eee';
             let estadoTexto = '#333';
             let textoBadge = f.estado; // Por defecto dice "pendiente" o "pagado"
+            let claseExtra = '';
 
             if(f.estado === 'pagado') { 
                 estadoColor = '#d5f5e3'; 
@@ -354,6 +376,7 @@ async function cargarFacturas(page = 1) {
                     estadoTexto = '#c0392b'; // Rojo oscuro de texto
                     // Agregamos ícono de alerta y los días
                     textoBadge = `EN MORA (+${f.dias_mora} días)`;
+                    claseExtra = 'badge-mora';
                     
                     // Opcional: Para el futuro corte con Mikrotik
                     // Si dias_mora > 5, el color podría ser más intenso
@@ -364,8 +387,7 @@ async function cargarFacturas(page = 1) {
                 }
             }
 
-            const badge = `<span style="background:${estadoColor}; color:${estadoTexto}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; text-transform:uppercase; display:inline-block; min-width:80px; text-align:center;">${textoBadge}</span>`;            
-            let fechaPagoStr = '--';
+            const badge = `<span class="${claseExtra}" style="background:${estadoColor}; color:${estadoTexto}; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; text-transform:uppercase; display:inline-block; min-width:80px; text-align:center;">${textoBadge}</span>`;            let fechaPagoStr = '--';
             if(f.fecha_pago) {
                 fechaPagoStr = new Date(f.fecha_pago).toLocaleDateString() + ' ' + new Date(f.fecha_pago).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
@@ -490,12 +512,16 @@ async function aplicarCorteMasivo() {
 }
 
 setInterval(() => {
-    // 1. Verificar si hay algún modal abierto (Para no molestar si estás editando)
+    // 1. Verificar si hay algún modal abierto (Para no interrumpir si estás editando)
     const modalDetalle = document.getElementById('modal-detalle');
-    const formCliente = document.getElementById('cliente-form-card');
-    
-    // Si hay ventanas abiertas, NO actualizamos para no interrumpir tu trabajo
-    if (modalDetalle.style.display === 'flex' || !formCliente.classList.contains('hidden')) {
+    const modalFormulario = document.getElementById('modal-formulario'); // <--- CORREGIDO: ID correcto
+
+    // Verificamos si están visibles (display: flex)
+    const detalleAbierto = modalDetalle && modalDetalle.style.display === 'flex';
+    const formularioAbierto = modalFormulario && modalFormulario.style.display === 'flex';
+
+    // Si hay ventanas abiertas, NO actualizamos
+    if (detalleAbierto || formularioAbierto) {
         return; 
     }
 
@@ -504,8 +530,7 @@ setInterval(() => {
     const tabFacturas = document.getElementById('tab-facturas');
 
     // 3. Actualizar la tabla correspondiente
-    if (tabClientes.classList.contains('active')) {
-        // Guardamos la búsqueda actual para no perderla
+    if (tabClientes && tabClientes.classList.contains('active')) {
         console.log("🔄 Auto-actualizando tabla Clientes...");
         cargarClientes(currentPage); 
     } 
@@ -514,4 +539,4 @@ setInterval(() => {
         cargarFacturas(currentFacturaPage);
     }
 
-}, 30000); // 30000 milisegundos = 30 Segundos
+}, 30000); // 30 Segundos

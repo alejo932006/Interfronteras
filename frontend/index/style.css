@@ -898,6 +898,328 @@
     font-weight: 400;
 }
 
+.gallery-section {
+    margin-top: 80px; /* Separación de la lista de textos */
+    text-align: center;
+}
+
+.gallery-header h3 {
+    font-size: 2rem;
+    color: var(--color-dark);
+    margin-bottom: 10px;
+}
+
+.gallery-header p {
+    color: #666;
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+}
+
+/* Grid de 3 columnas x 2 filas */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px;
+    padding-bottom: 20px;
+}
+
+.gallery-item {
+    position: relative;
+    height: 250px; /* Altura fija para uniformidad */
+    border-radius: 16px;
+    overflow: hidden; /* Para que la imagen no se salga al hacer zoom */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Recorta la imagen para llenar el cuadro sin deformar */
+    transition: transform 0.5s ease;
+}
+
+/* Efecto Hover (Zoom) */
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Capa oscura decorativa al pasar el mouse */
+.gallery-item .overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 80, 213, 0.4); /* Azul con transparencia */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.gallery-item:hover .overlay {
+    opacity: 1;
+}
+
+.gallery-item .overlay i {
+    color: white;
+    font-size: 2.5rem;
+    transform: translateY(20px);
+    transition: 0.3s;
+}
+
+.gallery-item:hover .overlay i {
+    transform: translateY(0);
+}
+
+/* =========================================
+   ESTILOS TÍTULO GALERÍA (IGUAL A PLANES)
+   ========================================= */
+
+/* 1. Copiamos el estilo exacto de '.planes-section h2' */
+.gallery-header h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-dark);
+    margin-bottom: 1.5rem;
+    letter-spacing: -1px;
+    position: relative;
+    display: inline-block;
+}
+
+/* 2. Agregamos la línea verde debajo */
+.gallery-header h2::after {
+    content: '';
+    display: block;
+    width: 80px;      /* Ancho de la línea */
+    height: 4px;      /* Grosor */
+    background: var(--color-secondary); /* El verde de tu marca */
+    margin: 20px auto 0 auto; /* Centrado */
+    border-radius: 2px;
+}
+
+/* =========================================
+   NUEVA ANIMACIÓN DE ENTRADA (PRO)
+   ========================================= */
+
+/* Definimos el movimiento: De abajo hacia arriba desvaneciéndose */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Empieza 30px más abajo */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Termina en su sitio */
+    }
+}
+
+/* Clase para aplicar la animación */
+.animate-title {
+    animation: fadeInUp 1s ease-out forwards; /* Dura 1 segundo */
+    opacity: 0; /* Empieza invisible hasta que la animación arranca */
+    animation-delay: 0.3s; /* Espera un poquito antes de empezar */
+}
+
+/* =========================================
+   BANNER GALERÍA "PRO" (ANIMADO)
+   ========================================= */
+
+   .pro-gallery-banner {
+    position: relative;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    
+    /* CAMBIO AQUÍ: Bajamos de 6rem a 3rem para quitar el espacio sobrante arriba y abajo */
+    padding: 1rem 0; 
+    
+    overflow: hidden; 
+    margin-top: 50px;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* --- TÍTULOS --- */
+.gallery-header-pro {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.gallery-header-pro h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: white; /* Texto Blanco para contrastar */
+    margin-bottom: 1rem;
+    display: inline-block;
+    position: relative;
+}
+
+/* Línea decorativa verde brillante */
+.gallery-header-pro h2::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: var(--color-secondary); /* Verde neon */
+    margin: 15px auto 0 auto;
+    box-shadow: 0 0 10px var(--color-secondary); /* Resplandor */
+    border-radius: 2px;
+}
+
+.gallery-header-pro p {
+    color: #cbd5e1; /* Gris azulado claro */
+    font-size: 1.2rem;
+}
+
+/* --- TARJETAS CON EFECTO CRISTAL (Glassmorphism) --- */
+.gallery-item.glass-effect {
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Sombra fuerte */
+}
+
+/* --- ANIMACIÓN DE FONDO (CORREGIDA) --- */
+.floating-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6; 
+    filter: blur(40px);
+    z-index: 1;
+    pointer-events: none;
+    will-change: transform;
+    
+    /* CAMBIO AQUÍ: Bajamos de 12s a 6s (Doble de velocidad) */
+    animation: floatAnimation 6s infinite ease-in-out; 
+}
+
+/* Círculo 1: Azul Brillante (Esquina superior izquierda) */
+.shape-1 {
+    width: 350px;
+    height: 350px;
+    background: var(--color-primary);
+    top: -50px;  /* Metemos más la figura en la pantalla */
+    left: -50px;
+    animation-delay: 0s;
+}
+
+/* Círculo 2: Verde (Esquina inferior derecha) */
+.shape-2 {
+    width: 300px;
+    height: 300px;
+    background: var(--color-secondary);
+    bottom: -20px; /* Más adentro */
+    right: -20px;
+    animation-delay: -5s;
+}
+
+.shape-3 {
+    width: 250px;
+    height: 250px;
+    background: #8b5cf6;
+    top: calc(50% - 125px); 
+    left: calc(50% - 125px);
+    opacity: 0.5;
+    
+    /* CAMBIO AQUÍ: Bajamos de 18s a 9s */
+    animation-duration: 9s; 
+}
+
+/* Definición del movimiento (Hacemos que se muevan más distancia) */
+@keyframes floatAnimation {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(50px, -60px) rotate(10deg); } /* Más desplazamiento */
+    66% { transform: translate(-40px, 40px) rotate(-5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* =========================================
+   ESTILOS LIGHTBOX (VISOR PRO)
+   ========================================= */
+
+/* Fondo oscuro con desenfoque intenso */
+.lightbox-overlay {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    z-index: 9999; /* Por encima de TODO */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(10, 10, 20, 0.9); /* Casi negro */
+    backdrop-filter: blur(15px); /* Desenfoque estilo Apple/Windows 11 */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Clase para activar la visibilidad */
+.lightbox-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Contenedor de la imagen y texto */
+.lightbox-content {
+    text-align: center;
+    max-width: 90%;
+    max-height: 90%;
+    position: relative;
+    animation: zoomInElastic 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Rebote suave */
+}
+
+/* La imagen en grande */
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 80vh; /* Que no se salga de la pantalla verticalmente */
+    border-radius: 12px;
+    box-shadow: 0 0 50px rgba(0, 80, 213, 0.3); /* Resplandor Azul */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* El texto descriptivo abajo */
+#lightboxCaption {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* Botón de cerrar (X) */
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10001;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.lightbox-close:hover {
+    color: var(--color-primary);
+    transform: rotate(90deg); /* Gira al pasar el mouse */
+}
+
+/* Animación de entrada (Efecto POP) */
+@keyframes zoomInElastic {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Ajuste móvil */
+@media (max-width: 768px) {
+    .lightbox-close {
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+    }
+    #lightboxCaption {
+        font-size: 1rem;
+    }
+}
 
 
 

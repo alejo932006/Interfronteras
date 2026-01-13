@@ -289,5 +289,58 @@
     list-style: none;
 }
 
+/* Agrega esto dentro de tu @media (max-width: 768px) existente */
+
+.gallery-section {
+    margin-top: 50px;
+}
+
+.gallery-header h3 {
+    font-size: 1.5rem;
+}
+
+.gallery-grid {
+    /* En móvil, cambiamos a 1 sola columna o 2 si prefieres */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+    gap: 15px;
+}
+
+.gallery-item {
+    height: 180px; /* Un poco más bajas en celular */
+}
+
+.gallery-header h2 {
+    font-size: 2.2rem; /* Tamaño ajustado para celular */
+}
+
+.gallery-header h2::after {
+    width: 60px; /* Línea un poco más corta */
+    height: 3px;
+    margin-top: 15px;
+}
+
+.pro-gallery-banner {
+    position: relative;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    
+    /* CAMBIO AQUÍ: Bajamos de 6rem a 3rem para quitar el espacio sobrante arriba y abajo */
+    padding: 1rem 0; 
+    
+    overflow: hidden; 
+    margin-top: 50px;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+}
+
+.gallery-header-pro h2 {
+    font-size: 2.2rem;
+}
+
+/* Hacemos las luces de fondo más pequeñas en móvil */
+.shape-1, .shape-2, .shape-3 {
+    width: 150px;
+    height: 150px;
+    opacity: 0.3; /* Menos intenso */
+}
+
 }
 

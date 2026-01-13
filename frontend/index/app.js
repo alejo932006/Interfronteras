@@ -1,5 +1,5 @@
 const API_URL = ""; 
-const CLOUDFLARE_URL = "https://webcast-made-row-time.trycloudflare.com"; 
+const CLOUDFLARE_URL = "https://campbell-dts-hopefully-settle.trycloudflare.com"; 
 
 // --- CONFIGURACIÓN CON TUS LLAVES NUEVAS ---
 const handler = ePayco.checkout.configure({
@@ -95,6 +95,65 @@ function iniciarPagoEpayco(idFactura, monto, descripcion) {
 
     handler.open(data);
 }
+
+/* =========================================
+   LÓGICA DEL LIGHTBOX (VISOR DE IMÁGENES)
+   ========================================= */
+
+   document.addEventListener('DOMContentLoaded', () => {
+    
+    const lightbox = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImage');
+    const captionText = document.getElementById('lightboxCaption');
+    const closeBtn = document.querySelector('.lightbox-close');
+
+    // CORRECCIÓN AQUÍ:
+    // Seleccionamos la CAJA completa (.gallery-item) en lugar de solo la imagen.
+    // Esto soluciona el problema de la capa superpuesta (overlay).
+    const galleryItems = document.querySelectorAll('.gallery-item');
+
+    galleryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Buscamos la imagen que está DENTRO de esta caja
+            const img = this.querySelector('img');
+
+            if (img) {
+                lightbox.classList.add('active'); // Mostrar modal
+                lightboxImg.src = img.src;        // Usar la ruta de esa imagen
+                captionText.innerHTML = img.alt;  // Usar el texto alternativo
+                
+                // Bloquear el scroll de la página de fondo
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    });
+
+    // 2. Función para Cerrar
+    function cerrarLightbox() {
+        lightbox.classList.remove('active');
+        // Reactivar el scroll
+        document.body.style.overflow = 'auto';
+    }
+
+    // Cerrar con la X
+    if(closeBtn) {
+        closeBtn.addEventListener('click', cerrarLightbox);
+    }
+
+    // Cerrar si hacen click fuera de la imagen (en el fondo oscuro)
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+            cerrarLightbox();
+        }
+    });
+
+    // Cerrar con la tecla ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            cerrarLightbox();
+        }
+    });
+});
 
 // Otros
 window.addEventListener('scroll', () => { document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50); });

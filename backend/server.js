@@ -82,23 +82,30 @@ app.get('/api/clientes', async (req, res) => {
 
       // 2. Consulta principal (Calcula el estado mirando la tabla facturas)
       const query = `
-          SELECT 
-              u.*,
-              f.estado as ultimo_estado,
-              f.mes_servicio as ultimo_mes,
-              f.fecha_pago as ultima_fecha_pago
-          FROM usuarios u
-          LEFT JOIN LATERAL (
-              SELECT estado, mes_servicio, fecha_pago
-              FROM facturas
-              WHERE usuario_id = u.id
-              ORDER BY id DESC
-              LIMIT 1
-          ) f ON true
-          ${whereClause}
-          ORDER BY u.id DESC
-          LIMIT $1 OFFSET $2
-      `;
+      SELECT 
+          u.*,
+          f.estado as ultimo_estado,
+          f.mes_servicio as ultimo_mes,
+          f.fecha_pago as ultima_fecha_pago,
+          -- CAMBIO: Calculamos los días de mora de la última factura
+            CASE 
+                -- Comparamos la fecha actual (sin hora) con la fecha de vencimiento (sin hora)
+                WHEN f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento) THEN 
+                    (CURRENT_DATE - DATE(f.fecha_vencimiento))::int
+                ELSE 0 
+            END as dias_mora
+      FROM usuarios u
+      LEFT JOIN LATERAL (
+          SELECT estado, mes_servicio, fecha_pago, fecha_vencimiento -- Agregamos fecha_vencimiento aquí
+          FROM facturas
+          WHERE usuario_id = u.id
+          ORDER BY id DESC
+          LIMIT 1
+      ) f ON true
+      ${whereClause}
+      ORDER BY u.id DESC
+      LIMIT $1 OFFSET $2
+  `;
       
       const result = await pool.query(query, params);
 
@@ -262,7 +269,7 @@ app.get('/api/facturas/:documento', async (req, res) => {
 
 // --- 6. CRON JOB: GENERACIÓN AUTOMÁTICA DE FACTURAS ---
 // Cambia '0 0 * * *' por '* * * * *' (5 asteriscos)
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   console.log("🕛 Revisando cortes de facturación...");
 
   try {
@@ -295,7 +302,6 @@ cron.schedule('* * * * *', async () => {
       const mesServicioCapitalizado = mesActual.charAt(0).toUpperCase() + mesActual.slice(1);
 
       const fechaVence = new Date(hoy);
-      fechaVence.setDate(hoy.getDate() + 5); 
 
       for (const u of usuariosACobrar.rows) {
           // Validación simple para no duplicar en el cron
@@ -390,7 +396,6 @@ app.post('/api/facturas/generar-masivo', async (req, res) => {
       const mesServicioCapitalizado = mesActual.charAt(0).toUpperCase() + mesActual.slice(1);
       
       const fechaVence = new Date(hoy);
-      fechaVence.setDate(hoy.getDate() + 5); 
 
       let facturasGeneradas = 0;
 
@@ -443,23 +448,29 @@ app.get('/api/admin/facturas', async (req, res) => {
       let paramIndex = 1;
 
       if (fecha) {
-          conditions.push(`DATE(f.fecha_pago) = $${paramIndex}`);
-          params.push(fecha);
-          paramIndex++;
-      }
+        conditions.push(`DATE(f.fecha_pago) = $${paramIndex}`);
+        params.push(fecha);
+        paramIndex++;
+    }
 
-      if (referencia) {
-          conditions.push(`f.referencia_pago::text ILIKE $${paramIndex}`);
-          params.push(`%${referencia}%`);
-          paramIndex++;
-      }
+    if (referencia) {
+        conditions.push(`f.referencia_pago::text ILIKE $${paramIndex}`);
+        params.push(`%${referencia}%`);
+        paramIndex++;
+    }
 
-      if (estado && estado !== 'todos') {
-          // Filtramos por estado exacto ('pendiente' o 'pagado')
-          conditions.push(`f.estado = $${paramIndex}`);
-          params.push(estado);
-          paramIndex++;
-      }
+    // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+    if (estado && estado !== 'todos') {
+        if (estado === 'mora') {
+            // Mora no es una etiqueta en la BD, es una condición:
+            // Está pendiente Y la fecha actual es mayor a la de vencimiento
+            conditions.push(`f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento)`);        } else {
+            // Para 'pendiente' o 'pagado' buscamos normal
+            conditions.push(`f.estado = $${paramIndex}`);
+            params.push(estado);
+            paramIndex++;
+        }
+    }
 
       const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
@@ -473,11 +484,12 @@ app.get('/api/admin/facturas', async (req, res) => {
       SELECT 
           f.id, f.monto, f.mes_servicio, f.estado, f.fecha_vencimiento, f.fecha_pago, f.referencia_pago,
           u.nombre_completo, u.documento_id,
-          CASE 
-            WHEN f.estado = 'pendiente' AND NOW() > f.fecha_vencimiento THEN 
-                EXTRACT(DAY FROM NOW() - f.fecha_vencimiento)::int
+        CASE 
+            -- Comparamos la fecha actual (sin hora) con la fecha de vencimiento (sin hora)
+            WHEN f.estado = 'pendiente' AND CURRENT_DATE > DATE(f.fecha_vencimiento) THEN 
+                (CURRENT_DATE - DATE(f.fecha_vencimiento))::int
             ELSE 0 
-          END as dias_mora
+        END as dias_mora
       FROM facturas f
       JOIN usuarios u ON f.usuario_id = u.id
       ${whereClause}
@@ -524,6 +536,31 @@ app.put('/api/clientes/masivo/fecha-corte', async (req, res) => {
       console.error("Error masivo:", error);
       res.status(500).json({ success: false, error: "Error en actualización masiva." });
   }
+});
+
+app.get('/api/test-forzar-mora', async (req, res) => {
+    try {
+        // 1. Buscamos cualquier factura pendiente
+        const busqueda = await pool.query("SELECT id FROM facturas WHERE estado = 'pendiente' LIMIT 1");
+        
+        if (busqueda.rows.length === 0) {
+            return res.send("❌ No tienes facturas pendientes para probar.");
+        }
+  
+        const idFactura = busqueda.rows[0].id;
+  
+        // 2. Retrasamos su vencimiento 10 días
+        await pool.query("UPDATE facturas SET fecha_vencimiento = NOW() - INTERVAL '1 days' WHERE id = $1", [idFactura]);
+  
+        // MENSAJE CORREGIDO:
+        res.send(`
+            ✅ ¡Listo! La factura #${idFactura} ahora vence hace 10 días.<br>
+            ⚠️ <b>IMPORTANTE:</b> Ve al Admin, filtra por <b>'PENDIENTES'</b> y busca la factura con la alerta roja de MORA.
+        `);
+  
+    } catch (error) {
+        res.status(500).send("Error: " + error.message);
+    }
 });
 
 app.listen(PORT, () => {
