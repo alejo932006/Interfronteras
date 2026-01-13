@@ -317,3 +317,67 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
         justify-content: center;
     }
 }
+
+/* =========================================
+   ESTILOS MÓVIL PARA ADMIN
+   ========================================= */
+
+/* Botón de menú (Oculto en PC, Visible en Móvil) */
+#menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--primary);
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+/* Fondo oscuro al abrir menú */
+#sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 998; /* Debajo del sidebar pero encima del contenido */
+    backdrop-filter: blur(3px);
+}
+
+/* Media Query para Celulares */
+@media (max-width: 768px) {
+    
+    /* Mostrar el botón */
+    #menu-toggle { display: block; }
+
+    /* Ocultar Sidebar por defecto moviéndolo a la izquierda */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px; /* Escondido */
+        height: 100%;
+        width: 250px;
+        z-index: 999;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+    }
+
+    /* Clase para mostrarlo */
+    .sidebar.active {
+        left: 0;
+    }
+
+    /* Mostrar fondo oscuro cuando está activo */
+    #sidebar-overlay.active {
+        display: block;
+    }
+
+    /* Ajuste de tablas para que no rompan el ancho */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    /* Ajuste de tarjetas del dashboard */
+    .form-grid {
+        grid-template-columns: 1fr; /* 1 sola columna */
+    }
+}

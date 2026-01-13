@@ -28,7 +28,7 @@ async function cargarClientes(page = 1) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Cargando...</td></tr>';
 
     const url = `${API}/clientes?page=${page}&limit=50&search=${encodeURIComponent(currentSearch)}&estado=${currentClientFilter}`;
-        
+
     try {
         const res = await fetch(url);
         const data = await res.json();
@@ -557,6 +557,31 @@ function filtrarClientesDesdeDashboard(filtro) {
     // 4. Cargar los datos filtrados
     cargarClientes(1);
 }
+
+// --- FUNCIÓN MENÚ MÓVIL ---
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    sidebar.classList.toggle('active');
+    
+    if(overlay) {
+        if (sidebar.classList.contains('active')) {
+            overlay.classList.add('active');
+        } else {
+            overlay.classList.remove('active');
+        }
+    }
+}
+
+// Cerrar menú automáticamente al hacer clic en una opción (solo en móvil)
+document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+        if(window.innerWidth <= 768) {
+            toggleSidebar();
+        }
+    });
+});
 
 setInterval(() => {
     // 1. Verificar si hay algún modal abierto (Para no interrumpir si estás editando)
