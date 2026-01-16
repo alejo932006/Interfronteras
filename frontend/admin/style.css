@@ -322,15 +322,77 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
    ESTILOS MÓVIL PARA ADMIN
    ========================================= */
 
+   /* 1. AGREGA ESTO AQUÍ (Esto oculta el botón en pantallas grandes) */
+    #menu-toggle {
+        display: none;
+    }
+
 /* Botón de menú (Oculto en PC, Visible en Móvil) */
-#menu-toggle {
-    display: none;
-    background: transparent;
-    border: none;
-    font-size: 1.8rem;
-    color: var(--primary);
-    cursor: pointer;
-    margin-bottom: 20px;
+/* =========================================
+   ESTILOS MÓVIL (TAMAÑO < 768px)
+   ========================================= */
+   @media (max-width: 768px) {
+    
+    /* BOTÓN FLOTANTE PRO (FAB) */
+    #menu-toggle {
+        display: flex;                /* Centrar icono */
+        justify-content: center;
+        align-items: center;
+
+        touch-action: none;
+        
+        position: fixed;              /* Fijar en pantalla */
+        bottom: 25px;                 /* Distancia desde abajo */
+        right: 25px;                  /* Distancia desde derecha (Esquina) */
+        
+        width: 60px;                  /* Tamaño círculo */
+        height: 60px;
+        border-radius: 50%;           /* Hacerlo redondo */
+        
+        background: var(--accent);    /* Color de fondo (verde/turquesa) */
+        color: white;                 /* Color del icono */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Sombra 3D */
+        border: none;
+        font-size: 1.5rem;
+        z-index: 1001;                /* Encima de todo (incluso del overlay) */
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    /* Efecto al presionar */
+    #menu-toggle:active {
+        transform: scale(0.90); /* Se encoge un poco al tocar */
+    }
+
+    /* ANIMACIÓN "ONDA EXPANSIVA" (PULSO) */
+    #menu-toggle::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        border: 2px solid var(--accent); /* Color de la onda */
+        opacity: 0;
+        z-index: -1; /* Detrás del botón */
+        animation: ondaExpansiva 2s infinite; /* Animación infinita */
+    }
+
+    /* Definición de la animación */
+    @keyframes ondaExpansiva {
+        0% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(2); /* Crece al doble */
+            opacity: 0;          /* Desaparece */
+        }
+    }
+
+    /* Mover Sidebar para que no tape el botón al abrirse */
+    .sidebar {
+        z-index: 1002; /* Sidebar encima del botón */
+    }
 }
 
 /* Fondo oscuro al abrir menú */
@@ -346,9 +408,6 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
 /* Media Query para Celulares */
 @media (max-width: 768px) {
     
-    /* Mostrar el botón */
-    #menu-toggle { display: block; }
-
     /* Ocultar Sidebar por defecto moviéndolo a la izquierda */
     .sidebar {
         position: fixed;
@@ -379,5 +438,59 @@ input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width:
     /* Ajuste de tarjetas del dashboard */
     .form-grid {
         grid-template-columns: 1fr; /* 1 sola columna */
+    }
+    /* AJUSTE BOTONES DE ACCIÓN EN TABLA (Ver, Editar, Eliminar) */
+    td .btn {
+        /* Aumentar tamaño para que el dedo acierte bien */
+        padding: 8px 12px !important; 
+        font-size: 1rem; /* Icono más grande */
+        
+        /* Separarlos entre sí */
+        margin-right: 8px; 
+        margin-bottom: 5px; /* Por si bajan de línea */
+        
+        /* Sombra suave para que resalten */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Quitar margen al último botón para que quede alineado */
+    td .btn:last-child {
+        margin-right: 0;
+    }
+    
+    /* Asegurar que la columna de acciones tenga espacio suficiente */
+    td:last-child {
+        min-width: 140px; /* Obliga a que la columna sea ancha */
+        white-space: nowrap; /* Evita que se rompan en varias líneas si no quieres */
+        /* O usa 'white-space: normal' si prefieres que se pongan uno debajo de otro */
+    }
+
+    /* AJUSTE FILTROS FACTURAS (Móvil) */
+    .filters-container {
+        flex-direction: column; /* Poner filtros en columna */
+        align-items: stretch !important; /* Estirar inputs al ancho completo */
+        gap: 20px !important; /* Más espacio entre cada filtro */
+    }
+
+    /* Que cada cajita de filtro (Estado, Fecha, Ref) ocupe todo el ancho */
+    .filters-container > div {
+        width: 100%;
+        margin-bottom: 5px; /* Un extra de seguridad */
+    }
+
+    /* Inputs y Selects más grandes y cómodos */
+    .filters-container input,
+    .filters-container select {
+        width: 100% !important; /* Forzar ancho completo */
+        padding: 12px; /* Más fáciles de tocar */
+        font-size: 1rem;
+    }
+
+    /* Botones de Buscar/Limpiar también grandes */
+    .filters-container .btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+        padding: 12px;
     }
 }

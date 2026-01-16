@@ -6,6 +6,8 @@
     <title>Admin - Interfronteras</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/frontend/admin/style.css">
+    <link rel="apple-touch-icon" href="/frontend/index/img/logo-app.png">
+    <link rel="icon" type="image/png" href="/frontend/index/img/logo-app.png">
 </head>
 <body>
 
@@ -24,6 +26,9 @@
         <div class="menu-item active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Inicio</div>
         <div class="menu-item" onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</div>
         <div class="menu-item" onclick="showTab('facturas')"><i class="fas fa-file-invoice-dollar"></i> Facturas</div>
+        <div class="menu-item" onclick="showTab('mikrotik')">
+            <i class="fas fa-network-wired"></i> Config. Mikrotik
+        </div>
         <div style="margin-top: auto; border-top: 1px solid #444;">
             <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</div>
         </div>
@@ -31,11 +36,9 @@
 
     <div class="main-content">
 
-        <button id="menu-toggle" onclick="toggleSidebar()">
+        <button id="menu-toggle">
             <i class="fas fa-bars"></i>
         </button>
-        
-        <section id="tab-dashboard" class="tab-section active">
         
         <section id="tab-dashboard" class="tab-section active">
             <h1 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">Panel de Control</h1>
@@ -249,8 +252,7 @@
             </div>
         </section>
         <section id="tab-facturas" class="tab-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-                <h1>Historial de Facturación</h1>
+            <div class="filters-container" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap: 15px;">                <h1>Historial de Facturación</h1>
                 
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     
@@ -305,6 +307,88 @@
                     <button class="btn btn-gray" onclick="cambiarPaginaFacturas(-1)">Anterior</button>
                     <button class="btn btn-primary" style="background:var(--primary)" onclick="cambiarPaginaFacturas(1)">Siguiente</button>
                 </div>
+            </div>
+        </section>
+        
+        <section id="tab-mikrotik" class="tab-section">
+            <div class="page-header">
+                <div class="header-title">
+                    <div class="icon-box">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h1>Nodos y Routers</h1>
+                        <p class="subtitle-admin">Configura la conexión Mikrotik para cada zona</p>
+                    </div>
+                </div>
+            </div>
+        
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                
+                <div class="card" style="flex: 1; min-width: 300px; height: fit-content;">
+                    <h3 style="color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fas fa-plus-circle"></i> Agregar / Editar Nodo
+                    </h3>
+        
+                    <div class="form-grid-pro" style="grid-template-columns: 1fr;"> <div class="input-group">
+                            <label>Nombre del Nodo (Exacto como en Clientes)</label>
+                            <input type="text" id="nodo_nombre" placeholder="Ej: Centro, Vereda X...">
+                            <small style="color:#666; font-size: 11px;">Debe coincidir con el campo 'Nodo' de los usuarios.</small>
+                        </div>
+        
+                        <div class="input-group">
+                            <label>IP Mikrotik</label>
+                            <input type="text" id="nodo_ip" placeholder="Ej: 192.168.88.1">
+                        </div>
+        
+                        <div class="input-group">
+                            <label>Usuario API</label>
+                            <input type="text" id="nodo_user" placeholder="admin">
+                        </div>
+        
+                        <div class="input-group">
+                            <label>Contraseña API</label>
+                            <input type="password" id="nodo_pass" placeholder="••••••">
+                        </div>
+        
+                        <div class="input-group">
+                            <label>Puerto API</label>
+                            <input type="number" id="nodo_port" value="8728">
+                        </div>
+                    </div>
+        
+                    <div style="margin-top: 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button class="btn btn-blue" onclick="probarConexionNodo()">
+                            <i class="fas fa-plug"></i> Probar
+                        </button>
+        
+                        <button class="btn btn-gray" onclick="limpiarFormNodo()">Cancelar</button>
+                        
+                        <button class="btn btn-green" onclick="guardarNodo()">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+        
+                <div class="card" style="flex: 2; min-width: 400px;">
+                    <h3><i class="fas fa-list"></i> Nodos Configurados</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre Nodo</th>
+                                    <th>IP</th>
+                                    <th>Usuario</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-nodos-body">
+                                <tr><td colspan="4" style="text-align:center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        
             </div>
         </section>
     </div>

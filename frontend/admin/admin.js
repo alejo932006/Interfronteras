@@ -583,6 +583,261 @@ document.querySelectorAll('.menu-item').forEach(item => {
     });
 });
 
+// --- LÓGICA DE BOTÓN FLOTANTE MEJORADA ---
+
+const fab = document.getElementById('menu-toggle');
+let isDragging = false;
+let startX, startY, initialLeft, initialTop;
+let hasMoved = false; // Nueva variable para controlar mejor el movimiento
+
+// 1. Al tocar
+fab.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    hasMoved = false;
+    isDragging = false;
+    
+    const rect = fab.getBoundingClientRect();
+    initialLeft = rect.left;
+    initialTop = rect.top;
+    
+    fab.style.transition = 'none'; // Quitamos animación para arrastrar rápido
+}, {passive: false});
+
+// 2. Al mover el dedo
+fab.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    // Aumentamos la tolerancia a 10px para que no falle si te mueves un poquito al pulsar
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        isDragging = true;
+        hasMoved = true;
+        
+        if(e.cancelable) e.preventDefault(); // Evita scroll de la pantalla
+        
+        fab.style.left = `${initialLeft + deltaX}px`;
+        fab.style.top = `${initialTop + deltaY}px`;
+        fab.style.bottom = 'auto';
+        fab.style.right = 'auto';
+    }
+}, {passive: false});
+
+// 3. Al soltar
+fab.addEventListener('touchend', (e) => {
+    fab.style.transition = 'transform 0.2s ease'; // Vuelve la suavidad
+
+    // Si NO movimos el botón (fue un toque rápido)
+    if (!hasMoved && !isDragging) {
+        // IMPORTANTE: Prevenir que el navegador lance un clic extra
+        if(e.cancelable) e.preventDefault(); 
+        
+        toggleSidebar(); // Abrimos el menú manualmente
+    }
+    
+    isDragging = false;
+    hasMoved = false;
+});
+
+// Soporte básico para Mouse (PC) - Para que puedas probar en el computador
+fab.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // Evita conflictos en PC
+    startX = e.clientX;
+    startY = e.clientY;
+    hasMoved = false;
+    
+    const rect = fab.getBoundingClientRect();
+    initialLeft = rect.left;
+    initialTop = rect.top;
+    fab.style.transition = 'none';
+
+    const onMouseMove = (moveEvent) => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+            hasMoved = true;
+            fab.style.left = `${initialLeft + deltaX}px`;
+            fab.style.top = `${initialTop + deltaY}px`;
+            fab.style.bottom = 'auto';
+            fab.style.right = 'auto';
+        }
+    };
+
+    const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        fab.style.transition = 'transform 0.2s ease';
+        
+        if (!hasMoved) toggleSidebar();
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+});
+
+// --- LÓGICA MIKROTIK ---
+
+// --- GESTIÓN DE NODOS MIKROTIK (MULTI-ZONA) ---
+
+let nodosCache = [];
+
+async function cargarNodos() {
+    const tbody = document.getElementById('tabla-nodos-body');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Cargando...</td></tr>';
+
+    try {
+        const res = await fetch(`${API}/nodos`);
+        nodosCache = await res.json();
+        
+        tbody.innerHTML = '';
+        if(nodosCache.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">No hay nodos configurados. Agrega uno.</td></tr>';
+            return;
+        }
+
+        nodosCache.forEach(n => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${n.nombre_nodo}</b></td>
+                    <td>${n.ip_mikrotik}:${n.puerto_api}</td>
+                    <td>${n.usuario_api}</td>
+                    <td>
+                        <button class="btn btn-blue" style="padding:4px 8px" onclick="editarNodo('${n.nombre_nodo}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-red" style="padding:4px 8px" onclick="eliminarNodo(${n.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch(e) { console.error(e); tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Error de conexión</td></tr>'; }
+}
+
+async function guardarNodo() {
+    const data = {
+        nombre_nodo: document.getElementById('nodo_nombre').value.trim(),
+        ip: document.getElementById('nodo_ip').value.trim(),
+        user: document.getElementById('nodo_user').value.trim(),
+        pass: document.getElementById('nodo_pass').value,
+        port: document.getElementById('nodo_port').value
+    };
+
+    if(!data.nombre_nodo || !data.ip || !data.user) {
+        alert("Por favor completa Nombre, IP y Usuario.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/nodos`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+        });
+        const r = await res.json();
+        
+        if(r.success) {
+            alert("Nodo guardado correctamente.");
+            limpiarFormNodo();
+            cargarNodos();
+        } else {
+            alert("Error: " + r.error);
+        }
+    } catch(e) { console.error(e); alert("Error al guardar"); }
+}
+
+async function probarConexionNodo() {
+    // 1. Obtener datos del formulario
+    const ip = document.getElementById('nodo_ip').value.trim();
+    const user = document.getElementById('nodo_user').value.trim();
+    const pass = document.getElementById('nodo_pass').value; // Sin trim por si tiene espacios
+    const port = document.getElementById('nodo_port').value;
+
+    // 2. Validar
+    if(!ip || !user || !pass) {
+        alert("⚠️ Por favor completa IP, Usuario y Contraseña para realizar la prueba.");
+        return;
+    }
+
+    // 3. Feedback visual (Cambiar texto del botón)
+    const btn = event.currentTarget; // El botón que se clickeó
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Probando...';
+    btn.disabled = true;
+
+    try {
+        // 4. Enviar al backend
+        const res = await fetch(`${API}/nodos/test`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ ip, user, pass, port })
+        });
+        
+        const data = await res.json();
+
+        // 5. Mostrar resultado
+        if(data.success) {
+            alert("✅ " + data.message);
+        } else {
+            alert("❌ Falló la conexión:\n" + data.error);
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("Error de comunicación con el servidor.");
+    } finally {
+        // 6. Restaurar botón
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }
+}
+
+function editarNodo(nombreNodo) {
+    const n = nodosCache.find(x => x.nombre_nodo === nombreNodo);
+    if(!n) return;
+
+    document.getElementById('nodo_nombre').value = n.nombre_nodo;
+    document.getElementById('nodo_ip').value = n.ip_mikrotik;
+    document.getElementById('nodo_user').value = n.usuario_api;
+    document.getElementById('nodo_pass').value = n.password_api; // Se carga para facilitar edición
+    document.getElementById('nodo_port').value = n.puerto_api;
+    
+    // Opcional: Bloquear el nombre para forzar edición en vez de crear nuevo
+    // document.getElementById('nodo_nombre').disabled = true; 
+}
+
+async function eliminarNodo(id) {
+    if(!confirm("¿Seguro que deseas eliminar este nodo? Los cortes automáticos para esta zona dejarán de funcionar.")) return;
+    
+    await fetch(`${API}/nodos/${id}`, { method: 'DELETE' });
+    cargarNodos();
+}
+
+function limpiarFormNodo() {
+    document.getElementById('nodo_nombre').value = '';
+    document.getElementById('nodo_ip').value = '';
+    document.getElementById('nodo_user').value = '';
+    document.getElementById('nodo_pass').value = '';
+    document.getElementById('nodo_port').value = '8728';
+}
+
+// Actualizamos la función showTab para que cargue la lista al entrar
+// (Asegúrate de borrar el showTab anterior si lo habías modificado)
+const oldShowTab = showTab; 
+showTab = function(id) {
+    // Restaurar comportamiento original
+    document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    
+    // Lógica específica
+    if(id === 'mikrotik') {
+        cargarNodos();
+    }
+    // Mantener lógica vieja si existía (o simplemente reescribirla si prefieres)
+    if(id === 'clientes') cargarClientes();
+    if(id === 'facturas') cargarFacturas();
+}
+
 setInterval(() => {
     // 1. Verificar si hay algún modal abierto (Para no interrumpir si estás editando)
     const modalDetalle = document.getElementById('modal-detalle');

@@ -4,6 +4,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const cron = require('node-cron'); // Importación movida arriba para orden
+const Mikronode = require('mikronode'); // <--- NUEVO
 
 const app = express();
 const PORT = 3000;
@@ -332,41 +333,254 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+// --- CRON JOB: CORTES AUTOMÁTICOS (Cada hora: 0 * * * *) ---
+cron.schedule('0 * * * *', async () => {
+    console.log("✂️ Verificando cortes por mora...");
+    
+    // Buscar clientes ACTIVOS que tengan facturas VENCIDAS pendientes
+    const clientesParaCorte = await pool.query(`
+        SELECT u.id, u.nombre_completo, u.codigo_pppoe 
+        FROM usuarios u
+        WHERE u.estado_servicio = 'ACTIVO'
+        AND EXISTS (
+            SELECT 1 FROM facturas f 
+            WHERE f.usuario_id = u.id 
+            AND f.estado = 'pendiente' 
+            AND CURRENT_DATE > DATE(f.fecha_vencimiento)
+        )
+    `);
+
+    if (clientesParaCorte.rows.length > 0) {
+        console.log(`Detectados ${clientesParaCorte.rows.length} clientes para corte.`);
+        
+        for (const cliente of clientesParaCorte.rows) {
+            // CAMBIO: Pasamos el ID del cliente, no el pppoe directo
+            await cambiarEstadoMikrotik(cliente.id, false); // false = Desactivar
+            
+            // Actualizamos BD
+            await pool.query("UPDATE usuarios SET estado_servicio = 'SUSPENDIDO', ultimo_corte = NOW() WHERE id = $1", [cliente.id]);
+            console.log(`⛔ Cliente SUSPENDIDO: ${cliente.nombre_completo}`);
+        }
+    }
+});
+
 // --- 7. WEBHOOK: CONFIRMACIÓN DE PAGO EPAYCO ---
 app.post('/api/confirmacion', async (req, res) => {
-  const { x_cod_response, x_id_invoice, x_extra1 } = req.body;
+    const { x_cod_response, x_id_invoice, x_extra1 } = req.body;
+    
+    // x_extra1: ID DE LA FACTURA
+    const idFactura = x_extra1; 
   
-  // x_extra1: ID DE LA FACTURA
-  const idFactura = x_extra1; 
+    try {
+        // Si x_cod_response es 1 (Aprobado)
+        if (x_cod_response == 1) {
+            
+            // 1. Actualizamos la factura a 'pagado'
+            await pool.query(`
+                UPDATE facturas 
+                SET estado = 'pagado', 
+                    fecha_pago = NOW(), 
+                    referencia_pago = $1 
+                WHERE id = $2
+            `, [x_id_invoice, idFactura]);
+            
+            console.log(`💰 Factura #${idFactura} pagada. Ref ePayco: ${x_id_invoice}`);
+  
+            // 2. AQUI ES DONDE DEBE IR LA REACTIVACIÓN (Solo si pagó)
+            // Buscamos al usuario dueño de la factura para ver si estaba suspendido
+            const userRes = await pool.query(`
+              SELECT u.id, u.codigo_pppoe, u.estado_servicio 
+              FROM usuarios u 
+              JOIN facturas f ON f.usuario_id = u.id 
+              WHERE f.id = $1
+            `, [idFactura]);
+      
+            if(userRes.rows.length > 0) {
+              const usuario = userRes.rows[0];
+              // Si estaba suspendido, lo reactivamos en Mikrotik y BD
+              if(usuario.estado_servicio === 'SUSPENDIDO') {
+                // CAMBIO: Pasamos usuario.id en lugar de usuario.codigo_pppoe
+                await cambiarEstadoMikrotik(usuario.id, true); // true = Activar
+                
+                await pool.query("UPDATE usuarios SET estado_servicio = 'ACTIVO' WHERE id = $1", [usuario.id]);
+                console.log(`✅ Servicio REACTIVADO automáticamente para usuario ID ${usuario.id}`);
+            }
+            }
+  
+        } else {
+            // Si el pago falló, solo registramos el log. ¡No reactivamos nada!
+            console.log(`⚠️ Pago rechazado o pendiente. Ref: ${x_id_invoice}`);
+        }
+  
+        res.sendStatus(200); 
+  
+    } catch (error) {
+        console.error("Error Webhook:", error);
+        res.sendStatus(500);
+    }
+  });
 
-  try {
-      // Si x_cod_response es 1 (Aprobado)
-      if (x_cod_response == 1) {
-          
-          // Actualizamos la factura a 'pagado'
-          // CORRECCIÓN: Usamos 'referencia_pago' que es el nombre real en tu tabla
-          await pool.query(`
-              UPDATE facturas 
-              SET estado = 'pagado', 
-                  fecha_pago = NOW(), 
-                  referencia_pago = $1 
-              WHERE id = $2
-          `, [x_id_invoice, idFactura]);
-          
-          // NOTA: No actualizamos la tabla 'usuarios'. 
-          // Al recargar el admin, la consulta JOIN verá que esta factura está pagada y pondrá el estado en VERDE automáticamente.
+// --- FUNCIONES MIKROTIK ---
 
-          console.log(`💰 Factura #${idFactura} pagada. Ref ePayco: ${x_id_invoice}`);
-      } else {
-          console.log(`⚠️ Pago rechazado o pendiente. Ref: ${x_id_invoice}`);
-      }
+// --- FUNCIONES MIKROTIK (MULTI-NODO) ---
 
-      res.sendStatus(200); 
+// Función Auxiliar: Ejecutar comando en un Router específico
+async function ejecutarEnMikrotik(configNodo, pppoeName, activar) {
+    return new Promise((resolve, reject) => {
+        if (!configNodo || !configNodo.ip_mikrotik) {
+            console.log(`⚠️ Nodo no configurado o sin IP. Saltando ${pppoeName}.`);
+            return resolve({ success: false, message: "Nodo sin configuración Mikrotik" });
+        }
 
-  } catch (error) {
-      console.error("Error Webhook:", error);
-      res.sendStatus(500);
-  }
+        // Conectamos a la IP específica de este nodo
+        const device = new Mikronode(configNodo.ip_mikrotik, parseInt(configNodo.puerto_api) || 8728);
+        
+        device.connect()
+            .then(([login]) => login(configNodo.usuario_api, configNodo.password_api))
+            .then(function(conn) {
+                const chan = conn.openChannel("ppp_action");
+                const action = activar ? 'enable' : 'disable';
+                
+                console.log(`🔌 Conectando a Nodo [${configNodo.nombre_nodo}] (${configNodo.ip_mikrotik}) para ${action} usuario ${pppoeName}...`);
+
+                // 1. Buscar ID del secret
+                chan.write('/ppp/secret/print', { '?name': pppoeName });
+
+                chan.on('done', function(data) {
+                    const parsed = Mikronode.parseItems(data);
+                    if (parsed.length > 0) {
+                        const id = parsed[0]['.id'];
+                        // 2. Activar/Desactivar
+                        chan.write(`/ppp/secret/${action}`, { '.id': id });
+                        
+                        // 3. Si es corte (desactivar), tumbar conexión activa para que caiga inmediato
+                        if (!activar) {
+                             const chanActive = conn.openChannel("kill_active");
+                             chanActive.write('/ppp/active/print', { '?name': pppoeName });
+                             chanActive.on('done', (d) => {
+                                 const actives = Mikronode.parseItems(d);
+                                 actives.forEach(a => {
+                                     chanActive.write('/ppp/active/remove', { '.id': a['.id'] });
+                                 });
+                                 chanActive.close();
+                             });
+                        }
+                        resolve({ success: true });
+                    } else {
+                        console.log(`❌ Usuario PPPoE ${pppoeName} no encontrado en router ${configNodo.nombre_nodo}.`);
+                        resolve({ success: false, message: "Usuario no encontrado en Router" });
+                    }
+                    chan.close();
+                    conn.close();
+                });
+            })
+            .catch(err => {
+                console.error(`❌ Error conexión Nodo [${configNodo.nombre_nodo}]:`, err.message);
+                resolve({ success: false, error: err.message });
+            });
+    });
+}
+
+// Función Principal: Busca el nodo del usuario en la BD y ejecuta la acción
+async function cambiarEstadoMikrotik(usuarioId, activar) {
+    try {
+        // JOIN entre usuarios y la nueva tabla routers_nodos
+        const query = `
+            SELECT u.codigo_pppoe, r.nombre_nodo, r.ip_mikrotik, r.usuario_api, r.password_api, r.puerto_api
+            FROM usuarios u
+            LEFT JOIN routers_nodos r ON u.nodo = r.nombre_nodo
+            WHERE u.id = $1
+        `;
+        const res = await pool.query(query, [usuarioId]);
+        
+        if(res.rows.length === 0) return { success: false, message: "Usuario no encontrado" };
+        
+        const datos = res.rows[0];
+        
+        // Si el cliente tiene un nodo, pero ese nodo no está en la tabla de routers
+        if(!datos.ip_mikrotik) {
+            console.log(`⚠️ El usuario ${datos.codigo_pppoe} es del nodo '${datos.nodo}' pero no hay router configurado para esa zona.`);
+            return { success: false, message: "Nodo no configurado" };
+        }
+
+        return await ejecutarEnMikrotik(datos, datos.codigo_pppoe, activar);
+
+    } catch (err) {
+        console.error("Error buscando datos mikrotik:", err);
+        return { success: false, error: err.message };
+    }
+}
+
+// --- API MIKROTIK ---
+
+// --- API GESTIÓN DE NODOS (ROUTERS) ---
+
+// Listar todos los nodos configurados
+app.get('/api/nodos', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM routers_nodos ORDER BY nombre_nodo ASC");
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Guardar o Actualizar un Nodo
+app.post('/api/nodos', async (req, res) => {
+    const { nombre_nodo, ip, user, pass, port } = req.body;
+    try {
+        // Verificar si ya existe un router para este nombre de nodo
+        const check = await pool.query("SELECT id FROM routers_nodos WHERE nombre_nodo = $1", [nombre_nodo]);
+        
+        if(check.rows.length > 0) {
+            // Actualizar existente
+            await pool.query(
+                "UPDATE routers_nodos SET ip_mikrotik=$1, usuario_api=$2, password_api=$3, puerto_api=$4 WHERE nombre_nodo=$5",
+                [ip, user, pass, port, nombre_nodo]
+            );
+        } else {
+            // Crear nuevo
+            await pool.query(
+                "INSERT INTO routers_nodos (nombre_nodo, ip_mikrotik, usuario_api, password_api, puerto_api) VALUES ($1, $2, $3, $4, $5)",
+                [nombre_nodo, ip, user, pass, port]
+            );
+        }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Eliminar configuración de un Nodo
+app.delete('/api/nodos/:id', async (req, res) => {
+    try {
+        await pool.query("DELETE FROM routers_nodos WHERE id = $1", [req.params.id]);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- PEGAR ESTO (NUEVO) ---
+// Ruta para probar conexión manual (Recibe IP, User, Pass desde el formulario)
+app.post('/api/nodos/test', async (req, res) => {
+    const { ip, user, pass, port } = req.body;
+    
+    if(!ip || !user || !pass) {
+        return res.json({ success: false, error: "Faltan datos (IP, Usuario o Clave)" });
+    }
+
+    try {
+        console.log(`🧪 Probando conexión a ${ip}...`);
+        // Usamos los datos que nos envía el frontend, NO los de la BD
+        const device = new Mikronode(ip, parseInt(port) || 8728);
+        
+        const [login] = await device.connect();
+        const conn = await login(user, pass);
+        
+        conn.close();
+        device.close();
+        
+        res.json({ success: true, message: "¡Conexión Exitosa con Mikrotik!" });
+
+    } catch (e) {
+        console.error("❌ Error Test Mikrotik:", e.message);
+        res.json({ success: false, error: "Fallo al conectar: " + e.message });
+    }
 });
 
 // --- RUTA: GENERACIÓN MASIVA MANUAL (Botón del Admin) ---
